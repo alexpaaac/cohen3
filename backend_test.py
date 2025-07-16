@@ -39,7 +39,10 @@ test_results = {
     "enhanced_session_management": {"passed": 0, "failed": 0, "errors": []},
     "results_tracking": {"passed": 0, "failed": 0, "errors": []},
     "results_analytics": {"passed": 0, "failed": 0, "errors": []},
-    "sample_data_setup": {"passed": 0, "failed": 0, "errors": []}
+    "sample_data_setup": {"passed": 0, "failed": 0, "errors": []},
+    "critical_deletion": {"passed": 0, "failed": 0, "errors": []},
+    "critical_export": {"passed": 0, "failed": 0, "errors": []},
+    "critical_data_integrity": {"passed": 0, "failed": 0, "errors": []}
 }
 
 def log_test(category, test_name, success, error_msg=None):
