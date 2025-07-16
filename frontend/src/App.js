@@ -588,11 +588,32 @@ const RiskHuntBuilder = () => {
     }
   };
 
-  const handleGameEnd = () => {
+  const handleGameEnd = async () => {
+    if (!gameSession) return;
+    
     setGameEnded(true);
     setGameSession(prev => ({ ...prev, status: 'completed' }));
+    
+    // Stop the timer
+    setTimeRemaining(0);
+    
+    // Load updated results
     loadResults();
-    setShowCorrectionScreen(true);
+    
+    // Auto-show correction screen after a brief delay
+    setTimeout(() => {
+      setShowCorrectionScreen(true);
+    }, 1000);
+    
+    // Calculate final statistics
+    const totalRisks = riskZones.length;
+    const risksFound = gameSession.found_risks ? gameSession.found_risks.length : 0;
+    const completionPercentage = totalRisks > 0 ? Math.round((risksFound / totalRisks) * 100) : 0;
+    
+    showNotification(
+      `🎉 Game Complete! Found ${risksFound}/${totalRisks} risks (${completionPercentage}%)`, 
+      'success'
+    );
   };
 
   const exportResults = async (gameId, format) => {
