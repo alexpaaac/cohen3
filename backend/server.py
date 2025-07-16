@@ -146,7 +146,7 @@ async def get_image(image_id: str):
         image = await db.images.find_one({"id": image_id})
         if not image:
             raise HTTPException(status_code=404, detail="Image not found")
-        return image
+        return serialize_doc(image)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching image: {str(e)}")
 
