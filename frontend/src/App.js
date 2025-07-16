@@ -1338,42 +1338,54 @@ const RiskHuntBuilder = () => {
             </button>
           </div>
 
-          <div className="relative">
-            {selectedImage.image_data.startsWith('http') ? (
-              <img
-                ref={imageRef}
-                src={selectedImage.image_data}
-                alt={selectedImage.name}
-                className="max-w-full h-auto"
-                onLoad={() => {
-                  if (canvasRef.current && imageRef.current) {
-                    canvasRef.current.width = imageRef.current.width;
-                    canvasRef.current.height = imageRef.current.height;
-                    drawRiskZones();
-                  }
-                }}
+          <div className="relative bg-white rounded-lg shadow-lg p-4">
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg mb-2">Editing: {selectedImage.name}</h4>
+              <div className="text-sm text-gray-600">
+                Image dimensions will be automatically optimized for high resolution display
+              </div>
+            </div>
+            
+            {/* Large, high-resolution image display */}
+            <div className="image-display-container max-w-4xl mx-auto">
+              {selectedImage.image_data.startsWith('http') ? (
+                <img
+                  ref={imageRef}
+                  src={selectedImage.image_data}
+                  alt={selectedImage.name}
+                  className="w-full h-auto max-h-[600px] object-contain rounded-lg shadow-md"
+                  style={{ minHeight: '400px' }}
+                  onLoad={() => {
+                    if (canvasRef.current && imageRef.current) {
+                      canvasRef.current.width = imageRef.current.width;
+                      canvasRef.current.height = imageRef.current.height;
+                      drawRiskZones();
+                    }
+                  }}
+                />
+              ) : (
+                <img
+                  ref={imageRef}
+                  src={`data:image/jpeg;base64,${selectedImage.image_data}`}
+                  alt={selectedImage.name}
+                  className="w-full h-auto max-h-[600px] object-contain rounded-lg shadow-md"
+                  style={{ minHeight: '400px' }}
+                  onLoad={() => {
+                    if (canvasRef.current && imageRef.current) {
+                      canvasRef.current.width = imageRef.current.width;
+                      canvasRef.current.height = imageRef.current.height;
+                      drawRiskZones();
+                    }
+                  }}
+                />
+              )}
+              <canvas
+                ref={canvasRef}
+                className="absolute top-0 left-0 cursor-crosshair rounded-lg"
+                onClick={handleCanvasClick}
+                onMouseMove={handleCanvasMouseMove}
               />
-            ) : (
-              <img
-                ref={imageRef}
-                src={`data:image/jpeg;base64,${selectedImage.image_data}`}
-                alt={selectedImage.name}
-                className="max-w-full h-auto"
-                onLoad={() => {
-                  if (canvasRef.current && imageRef.current) {
-                    canvasRef.current.width = imageRef.current.width;
-                    canvasRef.current.height = imageRef.current.height;
-                    drawRiskZones();
-                  }
-                }}
-              />
-            )}
-            <canvas
-              ref={canvasRef}
-              className="absolute top-0 left-0 cursor-crosshair"
-              onClick={handleCanvasClick}
-              onMouseMove={handleCanvasMouseMove}
-            />
+            </div>
           </div>
 
           {hoveredRiskZone && (
