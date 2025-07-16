@@ -610,7 +610,7 @@ const RiskHuntBuilder = () => {
     
     // Calculate final statistics
     const totalRisks = riskZones.length;
-    const risksFound = gameSession.found_risks ? gameSession.found_risks.length : 0;
+    const risksFound = gameSession && Array.isArray(gameSession.found_risks) ? gameSession.found_risks.length : 0;
     const completionPercentage = totalRisks > 0 ? Math.round((risksFound / totalRisks) * 100) : 0;
     
     showNotification(
