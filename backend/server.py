@@ -213,7 +213,7 @@ async def get_session(session_id: str):
         session = await db.sessions.find_one({"id": session_id})
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        return session
+        return serialize_doc(session)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching session: {str(e)}")
 
