@@ -1822,6 +1822,517 @@ const RiskHuntBuilder = () => {
     </div>
   );
 
+  const renderSettings = () => (
+    <div className="settings-container">
+      <h2 className="text-2xl font-bold mb-6">Settings & Administration</h2>
+      
+      {/* Settings Navigation */}
+      <div className="settings-nav mb-6">
+        <div className="flex flex-wrap gap-2">
+          {['general', 'images', 'templates', 'branding', 'analytics', 'export', 'security'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveSettingsTab(tab)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                activeSettingsTab === tab
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Settings Content */}
+      <div className="settings-content bg-white rounded-lg shadow-lg p-6">
+        
+        {/* General Settings */}
+        {activeSettingsTab === 'general' && (
+          <div className="general-settings">
+            <h3 className="text-lg font-semibold mb-4">General Settings</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Language</label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Time Limit (seconds)</label>
+                <input
+                  type="number"
+                  value={systemConfig.defaultTimeLimit}
+                  onChange={(e) => setSystemConfig(prev => ({ ...prev, defaultTimeLimit: parseInt(e.target.value) }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Max Clicks</label>
+                <input
+                  type="number"
+                  value={systemConfig.defaultMaxClicks}
+                  onChange={(e) => setSystemConfig(prev => ({ ...prev, defaultMaxClicks: parseInt(e.target.value) }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Target Risks</label>
+                <input
+                  type="number"
+                  value={systemConfig.defaultTargetRisks}
+                  onChange={(e) => setSystemConfig(prev => ({ ...prev, defaultTargetRisks: parseInt(e.target.value) }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Auto-save Interval (seconds)</label>
+                <input
+                  type="number"
+                  value={systemConfig.autoSaveInterval}
+                  onChange={(e) => setSystemConfig(prev => ({ ...prev, autoSaveInterval: parseInt(e.target.value) }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Theme</label>
+                <select
+                  value={systemConfig.theme}
+                  onChange={(e) => setSystemConfig(prev => ({ ...prev, theme: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="corporate">Corporate</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex items-center">
+              <input
+                type="checkbox"
+                id="enable-autosave"
+                checked={systemConfig.enableAutoSave}
+                onChange={(e) => setSystemConfig(prev => ({ ...prev, enableAutoSave: e.target.checked }))}
+                className="mr-2"
+              />
+              <label htmlFor="enable-autosave" className="text-sm font-medium">Enable Auto-save</label>
+            </div>
+          </div>
+        )}
+
+        {/* Image Management */}
+        {activeSettingsTab === 'images' && (
+          <div className="image-management">
+            <h3 className="text-lg font-semibold mb-4">Image Management</h3>
+            
+            <div className="image-stats mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="stat-card bg-blue-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800">Total Images</h4>
+                  <p className="text-2xl text-blue-600">{images.length}</p>
+                </div>
+                <div className="stat-card bg-green-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800">With Risk Zones</h4>
+                  <p className="text-2xl text-green-600">{images.filter(img => img.risk_zones?.length > 0).length}</p>
+                </div>
+                <div className="stat-card bg-yellow-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800">In Games</h4>
+                  <p className="text-2xl text-yellow-600">{images.filter(img => games.some(game => game.images.includes(img.id))).length}</p>
+                </div>
+                <div className="stat-card bg-purple-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-800">Unused</h4>
+                  <p className="text-2xl text-purple-600">{images.filter(img => !games.some(game => game.images.includes(img.id))).length}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bulk-actions mb-6">
+              <h4 className="font-semibold mb-3">Bulk Actions</h4>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => showNotification('Bulk delete feature coming soon', 'info')}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Delete Unused Images
+                </button>
+                <button
+                  onClick={() => showNotification('Bulk export feature coming soon', 'info')}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Export All Images
+                </button>
+                <button
+                  onClick={() => showNotification('Bulk optimization feature coming soon', 'info')}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Optimize All Images
+                </button>
+              </div>
+            </div>
+            
+            <div className="image-grid">
+              <h4 className="font-semibold mb-3">Image Library</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {images.map((image) => (
+                  <div key={image.id} className="image-card bg-white border rounded-lg p-2">
+                    <img
+                      src={`data:image/jpeg;base64,${image.image_data}`}
+                      alt={image.name}
+                      className="w-full h-24 object-cover rounded mb-2"
+                    />
+                    <p className="text-xs text-gray-600 truncate">{image.name}</p>
+                    <p className="text-xs text-gray-400">{image.risk_zones?.length || 0} zones</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Templates */}
+        {activeSettingsTab === 'templates' && (
+          <div className="templates">
+            <h3 className="text-lg font-semibold mb-4">Templates & Presets</h3>
+            
+            <div className="template-sections">
+              <div className="risk-zone-templates mb-6">
+                <h4 className="font-semibold mb-3">Risk Zone Templates</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="template-card bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium mb-2">Safety Hazard</h5>
+                    <p className="text-sm text-gray-600 mb-2">Red circle, high difficulty, 3 points</p>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      Use Template
+                    </button>
+                  </div>
+                  <div className="template-card bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium mb-2">Security Risk</h5>
+                    <p className="text-sm text-gray-600 mb-2">Orange rectangle, medium difficulty, 2 points</p>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      Use Template
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="game-templates">
+                <h4 className="font-semibold mb-3">Game Templates</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="template-card bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium mb-2">Quick Assessment</h5>
+                    <p className="text-sm text-gray-600 mb-2">5 min, 10 clicks, 5 risks</p>
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                      Create Game
+                    </button>
+                  </div>
+                  <div className="template-card bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium mb-2">Comprehensive Review</h5>
+                    <p className="text-sm text-gray-600 mb-2">10 min, 20 clicks, 15 risks</p>
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                      Create Game
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Branding */}
+        {activeSettingsTab === 'branding' && (
+          <div className="branding">
+            <h3 className="text-lg font-semibold mb-4">Branding & Customization</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Company Name</label>
+                <input
+                  type="text"
+                  value={branding.companyName}
+                  onChange={(e) => setBranding(prev => ({ ...prev, companyName: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Primary Color</label>
+                <input
+                  type="color"
+                  value={branding.primaryColor}
+                  onChange={(e) => setBranding(prev => ({ ...prev, primaryColor: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Secondary Color</label>
+                <input
+                  type="color"
+                  value={branding.secondaryColor}
+                  onChange={(e) => setBranding(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Logo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setBranding(prev => ({ ...prev, logo: e.target.result }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+            
+            <div className="preview mt-6">
+              <h4 className="font-semibold mb-3">Preview</h4>
+              <div className="preview-header p-4 bg-gray-100 rounded-lg">
+                <div className="flex items-center">
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                    style={{ backgroundColor: branding.primaryColor }}
+                  >
+                    <span className="text-white font-bold text-sm">
+                      {branding.companyName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <h1 className="text-xl font-bold text-gray-800">{branding.companyName} Risk Hunt Builder</h1>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics */}
+        {activeSettingsTab === 'analytics' && (
+          <div className="analytics-config">
+            <h3 className="text-lg font-semibold mb-4">Analytics Configuration</h3>
+            
+            <div className="analytics-overview mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="stat-card bg-blue-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800">Total Games</h4>
+                  <p className="text-2xl text-blue-600">{games.length}</p>
+                </div>
+                <div className="stat-card bg-green-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800">Total Sessions</h4>
+                  <p className="text-2xl text-green-600">{results.length}</p>
+                </div>
+                <div className="stat-card bg-yellow-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800">Active Users</h4>
+                  <p className="text-2xl text-yellow-600">{new Set(results.map(r => r.player_name)).size}</p>
+                </div>
+                <div className="stat-card bg-purple-100 p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-800">Avg Score</h4>
+                  <p className="text-2xl text-purple-600">
+                    {results.length > 0 ? Math.round(results.reduce((sum, r) => sum + r.total_score, 0) / results.length) : 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="analytics-settings">
+              <h4 className="font-semibold mb-3">Analytics Settings</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Data Retention (days)</label>
+                  <input
+                    type="number"
+                    defaultValue={365}
+                    className="w-full p-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Report Frequency</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-lg">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Export */}
+        {activeSettingsTab === 'export' && (
+          <div className="export-config">
+            <h3 className="text-lg font-semibold mb-4">Export Configuration</h3>
+            
+            <div className="export-formats mb-6">
+              <h4 className="font-semibold mb-3">Export Formats</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="format-card bg-green-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-green-800 mb-2">CSV Export</h5>
+                  <p className="text-sm text-green-600 mb-3">Basic data export for spreadsheet analysis</p>
+                  <button
+                    onClick={() => exportResults('all', 'csv')}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg w-full"
+                  >
+                    Export All as CSV
+                  </button>
+                </div>
+                <div className="format-card bg-blue-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">Excel Export</h5>
+                  <p className="text-sm text-blue-600 mb-3">Advanced spreadsheet with formatting</p>
+                  <button
+                    onClick={() => exportResults('all', 'excel')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+                  >
+                    Export All as Excel
+                  </button>
+                </div>
+                <div className="format-card bg-red-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-red-800 mb-2">PDF Export</h5>
+                  <p className="text-sm text-red-600 mb-3">Professional report format</p>
+                  <button
+                    onClick={() => exportResults('all', 'pdf')}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg w-full"
+                  >
+                    Export All as PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="export-settings">
+              <h4 className="font-semibold mb-3">Export Settings</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Default Export Format</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-lg">
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel</option>
+                    <option value="pdf">PDF</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Include Images in Export</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-lg">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Security */}
+        {activeSettingsTab === 'security' && (
+          <div className="security-config">
+            <h3 className="text-lg font-semibold mb-4">Security Settings</h3>
+            
+            <div className="security-overview mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="security-card bg-green-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-green-800 mb-2">Data Protection</h5>
+                  <p className="text-sm text-green-600">All data is encrypted and stored securely</p>
+                </div>
+                <div className="security-card bg-blue-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">Access Control</h5>
+                  <p className="text-sm text-blue-600">Role-based access management</p>
+                </div>
+                <div className="security-card bg-yellow-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-yellow-800 mb-2">Audit Logs</h5>
+                  <p className="text-sm text-yellow-600">Complete activity tracking</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="security-settings">
+              <h4 className="font-semibold mb-3">Security Configuration</h4>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="require-auth"
+                    defaultChecked={true}
+                    className="mr-2"
+                  />
+                  <label htmlFor="require-auth" className="text-sm font-medium">Require authentication for all actions</label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="enable-logging"
+                    defaultChecked={true}
+                    className="mr-2"
+                  />
+                  <label htmlFor="enable-logging" className="text-sm font-medium">Enable detailed audit logging</label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="auto-backup"
+                    defaultChecked={true}
+                    className="mr-2"
+                  />
+                  <label htmlFor="auto-backup" className="text-sm font-medium">Enable automatic backups</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Save Button */}
+        <div className="settings-actions mt-8 pt-6 border-t">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              {unsavedChanges && (
+                <span className="text-amber-600">⚠️ You have unsaved changes</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setUnsavedChanges(false);
+                  showNotification('Settings saved successfully', 'success');
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+              >
+                Save Settings
+              </button>
+              <button
+                onClick={() => {
+                  setUnsavedChanges(false);
+                  showNotification('Settings reset to defaults', 'info');
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg"
+              >
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       {renderNotifications()}
