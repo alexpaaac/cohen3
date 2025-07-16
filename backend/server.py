@@ -136,7 +136,7 @@ async def upload_image(
 async def get_images():
     try:
         images = await db.images.find().to_list(100)
-        return images
+        return serialize_doc(images)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching images: {str(e)}")
 
