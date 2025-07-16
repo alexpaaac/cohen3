@@ -567,7 +567,7 @@ const RiskHuntBuilder = () => {
         ...prev,
         clicks_used: response.data.clicks_used,
         score: response.data.score,
-        found_risks: response.data.found_risks || prev.found_risks
+        found_risks: Array.isArray(response.data.found_risks) ? response.data.found_risks : (prev.found_risks || [])
       }));
 
       // Check if game should end
