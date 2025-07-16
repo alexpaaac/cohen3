@@ -478,7 +478,10 @@ const RiskHuntBuilder = () => {
       const response = await axios.post(`${API}/sessions`, session);
       const game = games.find(g => g.id === gameId);
       
-      setGameSession(response.data);
+      setGameSession({
+        ...response.data,
+        found_risks: response.data.found_risks || []
+      });
       setTimeRemaining(game.time_limit);
       setGameEnded(false);
       setActiveTab('play');
