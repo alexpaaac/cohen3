@@ -666,6 +666,12 @@ const RiskHuntBuilder = () => {
     
     // Draw risk zones
     riskZones.forEach(zone => {
+      // Safety check for zone validity
+      if (!zone || !zone.id || typeof zone.x !== 'number' || typeof zone.y !== 'number') {
+        console.warn('Invalid zone data detected:', zone);
+        return;
+      }
+      
       const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
       const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
       const isFound = gameSession && 
