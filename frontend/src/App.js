@@ -1518,21 +1518,52 @@ const RiskHuntBuilder = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-2">
-              {riskZones.map(zone => (
-                <div
-                  key={zone.id}
-                  className={`p-3 rounded cursor-pointer ${
-                    selectedRiskZone?.id === zone.id ? 'bg-blue-100' : 'bg-gray-100'
-                  }`}
-                  onClick={() => setSelectedRiskZone(zone)}
-                >
-                  <p><strong>Type:</strong> {zone.type}</p>
-                  <p><strong>Description:</strong> {zone.description}</p>
-                  <p><strong>Difficulty:</strong> {zone.difficulty}</p>
-                  <p><strong>Points:</strong> {zone.points}</p>
+            <div className="risk-zones-list">
+              <h4 className="text-lg font-semibold mb-4">Risk Zones Overview ({riskZones.length} zones)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {riskZones.map(zone => (
+                  <div
+                    key={zone.id}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                      selectedRiskZone?.id === zone.id 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => setSelectedRiskZone(zone)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-4 h-4 rounded-full border-2 border-gray-300"
+                          style={{ backgroundColor: zone.color }}
+                        ></div>
+                        <span className="font-medium text-gray-800">{zone.type.charAt(0).toUpperCase() + zone.type.slice(1)}</span>
+                      </div>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        zone.difficulty === 'easy' 
+                          ? 'bg-green-100 text-green-800' 
+                          : zone.difficulty === 'medium' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                      }`}>
+                        {zone.difficulty}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{zone.description}</p>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>Points: {zone.points}</span>
+                      <span>Click to edit</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {riskZones.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-lg mb-2">No risk zones yet</p>
+                  <p className="text-sm">Use the Circle or Rectangle tools to add risk zones to your image</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
