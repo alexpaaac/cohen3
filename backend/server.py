@@ -17,6 +17,29 @@ from bson import ObjectId
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Helper function to convert ObjectId to string
+def serialize_doc(doc):
+    """Convert MongoDB document to JSON serializable format"""
+    if doc is None:
+        return None
+    if isinstance(doc, list):
+        return [serialize_doc(item) for item in doc]
+    if isinstance(doc, dict):
+        result = {}
+        for key, value in doc.items():
+            if key == '_id':
+                continue  # Skip MongoDB _id field
+            elif isinstance(value, ObjectId):
+                result[key] = str(value)
+            elif isinstance(value, list):
+                result[key] = [serialize_doc(item) for item in value]
+            elif isinstance(value, dict):
+                result[key] = serialize_doc(value)
+            else:
+                result[key] = value
+        return result
+    return doc
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
