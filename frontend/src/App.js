@@ -328,44 +328,7 @@ const RiskHuntBuilder = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [unsavedChanges]);
 
-  const loadImages = async () => {
-    try {
-      const response = await axios.get(`${API}/images`);
-      setImages(response.data);
-    } catch (error) {
-      console.error('Error loading images:', error);
-      showNotification('Error loading images', 'error');
-    }
-  };
-
-  const loadGames = async () => {
-    try {
-      const response = await axios.get(`${API}/games`);
-      setGames(response.data);
-    } catch (error) {
-      console.error('Error loading games:', error);
-      showNotification('Error loading games', 'error');
-    }
-  };
-
-  const loadResults = async () => {
-    try {
-      const response = await axios.get(`${API}/results`);
-      setResults(response.data);
-    } catch (error) {
-      console.error('Error loading results:', error);
-    }
-  };
-
-  const loadAnalytics = async (gameId) => {
-    try {
-      const response = await axios.get(`${API}/results/analytics/${gameId}`);
-      setAnalytics(response.data);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    }
-  };
-
+  // Optimized notification system
   const showNotification = (message, type = 'info') => {
     const notification = {
       id: Date.now(),
