@@ -340,6 +340,238 @@ def test_results_tracking():
         except Exception as e:
             log_test("results_tracking", "Get game results", False, str(e))
 
+def test_enhanced_image_management():
+    """Test Enhanced Image Management API endpoints"""
+    global created_image_id, duplicate_image_id
+    
+    print("\n=== Testing Enhanced Image Management API ===")
+    
+    if not created_image_id:
+        log_test("enhanced_image_management", "Update image details", False, "No image ID available")
+        log_test("enhanced_image_management", "Delete image", False, "No image ID available")
+        log_test("enhanced_image_management", "Duplicate image", False, "No image ID available")
+        return
+    
+    # Test 1: Update image details
+    try:
+        update_data = {
+            "name": "Updated Industrial Workplace Safety Scene",
+            "description": "Updated description for safety training"
+        }
+        
+        response = requests.put(f"{API_URL}/images/{created_image_id}", json=update_data)
+        if response.status_code == 200:
+            log_test("enhanced_image_management", "Update image details", True)
+        else:
+            log_test("enhanced_image_management", "Update image details", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("enhanced_image_management", "Update image details", False, str(e))
+    
+    # Test 2: Duplicate image
+    try:
+        response = requests.post(f"{API_URL}/images/{created_image_id}/duplicate")
+        if response.status_code == 200:
+            result = response.json()
+            duplicate_image_id = result.get('id')
+            log_test("enhanced_image_management", "Duplicate image", True)
+        else:
+            log_test("enhanced_image_management", "Duplicate image", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("enhanced_image_management", "Duplicate image", False, str(e))
+    
+    # Test 3: Delete image (delete the duplicate to avoid affecting other tests)
+    if duplicate_image_id:
+        try:
+            response = requests.delete(f"{API_URL}/images/{duplicate_image_id}")
+            if response.status_code == 200:
+                log_test("enhanced_image_management", "Delete image", True)
+            else:
+                log_test("enhanced_image_management", "Delete image", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("enhanced_image_management", "Delete image", False, str(e))
+
+def test_enhanced_game_management():
+    """Test Enhanced Game Management API endpoints"""
+    global created_game_id, duplicate_game_id, public_game_link
+    
+    print("\n=== Testing Enhanced Game Management API ===")
+    
+    if not created_game_id:
+        log_test("enhanced_game_management", "Update game configuration", False, "No game ID available")
+        log_test("enhanced_game_management", "Delete game", False, "No game ID available")
+        log_test("enhanced_game_management", "Duplicate game", False, "No game ID available")
+        log_test("enhanced_game_management", "Get public game by link", False, "No game ID available")
+        return
+    
+    # Test 1: Update game configuration
+    try:
+        update_data = {
+            "name": "Updated Workplace Safety Challenge",
+            "description": "Updated comprehensive safety hazard identification game",
+            "time_limit": 450,
+            "max_clicks": 20,
+            "target_risks": 18,
+            "is_public": True
+        }
+        
+        response = requests.put(f"{API_URL}/games/{created_game_id}", json=update_data)
+        if response.status_code == 200:
+            log_test("enhanced_game_management", "Update game configuration", True)
+        else:
+            log_test("enhanced_game_management", "Update game configuration", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("enhanced_game_management", "Update game configuration", False, str(e))
+    
+    # Test 2: Duplicate game
+    try:
+        response = requests.post(f"{API_URL}/games/{created_game_id}/duplicate")
+        if response.status_code == 200:
+            result = response.json()
+            duplicate_game_id = result.get('id')
+            log_test("enhanced_game_management", "Duplicate game", True)
+        else:
+            log_test("enhanced_game_management", "Duplicate game", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("enhanced_game_management", "Duplicate game", False, str(e))
+    
+    # Test 3: Get public game by link (first get the updated game to check public link)
+    try:
+        # Get the updated game to see if it has a public link
+        response = requests.get(f"{API_URL}/games/{created_game_id}")
+        if response.status_code == 200:
+            game = response.json()
+            public_game_link = game.get('public_link')
+            
+            if public_game_link:
+                # Test getting public game by link
+                response = requests.get(f"{API_URL}/public/games/{public_game_link}")
+                if response.status_code == 200:
+                    public_game = response.json()
+                    log_test("enhanced_game_management", "Get public game by link", True)
+                else:
+                    log_test("enhanced_game_management", "Get public game by link", False, f"Status: {response.status_code}, Response: {response.text}")
+            else:
+                log_test("enhanced_game_management", "Get public game by link", False, "No public link generated")
+        else:
+            log_test("enhanced_game_management", "Get public game by link", False, f"Could not get game details: {response.status_code}")
+    except Exception as e:
+        log_test("enhanced_game_management", "Get public game by link", False, str(e))
+    
+    # Test 4: Delete game (delete the duplicate to avoid affecting other tests)
+    if duplicate_game_id:
+        try:
+            response = requests.delete(f"{API_URL}/games/{duplicate_game_id}")
+            if response.status_code == 200:
+                log_test("enhanced_game_management", "Delete game", True)
+            else:
+                log_test("enhanced_game_management", "Delete game", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("enhanced_game_management", "Delete game", False, str(e))
+
+def test_enhanced_session_management():
+    """Test Enhanced Session Management API endpoints"""
+    global created_session_id, created_game_id
+    
+    print("\n=== Testing Enhanced Session Management API ===")
+    
+    if not created_session_id:
+        log_test("enhanced_session_management", "Handle game timeout", False, "No session ID available")
+        return
+    
+    # Create a new session for timeout testing (to avoid affecting the main session)
+    timeout_session_id = None
+    try:
+        session_data = {
+            "game_id": created_game_id if created_game_id else "test_game_id",
+            "player_name": "Mike Wilson",
+            "team_name": "Safety Testers",
+            "current_image_index": 0,
+            "found_risks": [],
+            "clicks_used": 5,
+            "time_remaining": 0,  # Set to 0 to simulate timeout
+            "score": 25,
+            "status": "active"
+        }
+        
+        response = requests.post(f"{API_URL}/sessions", json=session_data)
+        if response.status_code == 200:
+            result = response.json()
+            timeout_session_id = result.get('id')
+        
+    except Exception as e:
+        log_test("enhanced_session_management", "Handle game timeout", False, f"Could not create timeout session: {str(e)}")
+        return
+    
+    # Test: Handle game timeout
+    if timeout_session_id:
+        try:
+            response = requests.post(f"{API_URL}/sessions/{timeout_session_id}/timeout")
+            if response.status_code == 200:
+                result = response.json()
+                log_test("enhanced_session_management", "Handle game timeout", True)
+            else:
+                log_test("enhanced_session_management", "Handle game timeout", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("enhanced_session_management", "Handle game timeout", False, str(e))
+
+def test_results_analytics():
+    """Test Results & Analytics API endpoints"""
+    global created_game_id
+    
+    print("\n=== Testing Results & Analytics API ===")
+    
+    if not created_game_id:
+        log_test("results_analytics", "Get game analytics", False, "No game ID available")
+        log_test("results_analytics", "Export results CSV", False, "No game ID available")
+        log_test("results_analytics", "Export results Excel", False, "No game ID available")
+        return
+    
+    # Test 1: Get game analytics
+    try:
+        response = requests.get(f"{API_URL}/results/analytics/{created_game_id}")
+        if response.status_code == 200:
+            analytics = response.json()
+            # Verify analytics structure
+            expected_keys = ["total_players", "average_score", "average_time", "total_clicks", "total_risks_found", "results"]
+            if all(key in analytics for key in expected_keys):
+                log_test("results_analytics", "Get game analytics", True)
+            else:
+                log_test("results_analytics", "Get game analytics", False, f"Missing expected keys in analytics response")
+        else:
+            log_test("results_analytics", "Get game analytics", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("results_analytics", "Get game analytics", False, str(e))
+    
+    # Test 2: Export results as CSV
+    try:
+        response = requests.get(f"{API_URL}/results/export/{created_game_id}?format=csv")
+        if response.status_code == 200:
+            # Check if response is CSV format
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'csv' in response.headers.get('content-disposition', ''):
+                log_test("results_analytics", "Export results CSV", True)
+            else:
+                log_test("results_analytics", "Export results CSV", False, f"Unexpected content type: {content_type}")
+        else:
+            log_test("results_analytics", "Export results CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("results_analytics", "Export results CSV", False, str(e))
+    
+    # Test 3: Export results as Excel
+    try:
+        response = requests.get(f"{API_URL}/results/export/{created_game_id}?format=excel")
+        if response.status_code == 200:
+            # Check if response is Excel format
+            content_type = response.headers.get('content-type', '')
+            if 'spreadsheet' in content_type or 'xlsx' in response.headers.get('content-disposition', ''):
+                log_test("results_analytics", "Export results Excel", True)
+            else:
+                log_test("results_analytics", "Export results Excel", False, f"Unexpected content type: {content_type}")
+        else:
+            log_test("results_analytics", "Export results Excel", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("results_analytics", "Export results Excel", False, str(e))
+
 def test_sample_data_setup():
     """Test Sample Data Setup API"""
     print("\n=== Testing Sample Data Setup API ===")
