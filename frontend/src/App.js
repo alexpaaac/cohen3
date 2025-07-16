@@ -206,10 +206,10 @@ const RiskHuntBuilder = () => {
     loadResults();
   }, []);
 
-  // Game timer effect
+  // Optimized game timer effect with proper dependencies
   useEffect(() => {
     let interval;
-    if (gameSession && gameSession.status === 'active' && timeRemaining > 0) {
+    if (gameSession?.status === 'active' && timeRemaining > 0) {
       interval = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -220,8 +220,10 @@ const RiskHuntBuilder = () => {
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [gameSession, timeRemaining]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameSession?.status, timeRemaining > 0]); // Optimized dependencies
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
