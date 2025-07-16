@@ -1845,7 +1845,7 @@ const RiskHuntBuilder = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Builder
+                {t('builder')}
               </button>
               <button
                 onClick={() => setActiveTab('games')}
@@ -1855,7 +1855,7 @@ const RiskHuntBuilder = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Games
+                {t('games')}
               </button>
               <button
                 onClick={() => setActiveTab('play')}
@@ -1865,7 +1865,7 @@ const RiskHuntBuilder = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Play
+                {t('play')}
               </button>
               <button
                 onClick={() => setActiveTab('results')}
@@ -1875,7 +1875,17 @@ const RiskHuntBuilder = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Results
+                {t('results')}
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeTab === 'settings'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {t('settings')}
               </button>
             </div>
           </div>
