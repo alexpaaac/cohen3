@@ -267,7 +267,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Missing Settings Page Implementation"
+    - "Enterprise-Grade Settings Page Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
