@@ -564,95 +564,124 @@ const RiskHuntBuilder = () => {
     }
   };
 
+  // Debounced click handler for better performance
+  const debouncedClickHandler = useRef(null);
+  
   const handleGameClick = async (event) => {
     if (!gameSession || gameSession.status !== 'active' || !selectedImage) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    // Clear any pending debounced clicks
+    if (debouncedClickHandler.current) {
+      clearTimeout(debouncedClickHandler.current);
+    }
+    
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Provide immediate visual feedback
+    // Provide immediate visual feedback with optimized rendering
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, 2 * Math.PI);
-    ctx.fill();
+    // Use requestAnimationFrame for smooth visual feedback
+    requestAnimationFrame(() => {
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+      ctx.arc(x, y, 15, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+    });
     
-    // Clear the visual feedback after a short delay
-    setTimeout(() => {
-      drawRiskZones(showCorrectionScreen);
-    }, 200);
-
-    try {
-      const response = await axios.post(`${API}/sessions/${gameSession.id}/click`, { x, y });
-      
-      if (response.data.hit) {
-        // Show hit animation
-        showNotification(`🎯 Risk Found: ${response.data.risk_zone.description}`, 'success');
+    // Debounce the API call to prevent rapid clicks
+    debouncedClickHandler.current = setTimeout(async () => {
+      try {
+        const response = await axios.post(`${API}/sessions/${gameSession.id}/click`, { x, y });
         
-        // Visual feedback for hit
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, 2 * Math.PI);
-        ctx.stroke();
-        
-        // Show the found risk zone temporarily
-        const foundZone = response.data.risk_zone;
-        if (foundZone && foundZone.coordinates && Array.isArray(foundZone.coordinates)) {
-          ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
-          ctx.strokeStyle = '#10b981';
-          ctx.lineWidth = 2;
+        if (response.data.hit) {
+          // Show hit animation with optimized rendering
+          showNotification(`🎯 Risk Found: ${response.data.risk_zone.description}`, 'success');
           
-          if (foundZone.type === 'circle' && foundZone.coordinates.length >= 3) {
-            const [cx, cy, radius] = foundZone.coordinates;
-            if (typeof cx === 'number' && typeof cy === 'number' && typeof radius === 'number') {
-              ctx.beginPath();
-              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.stroke();
-            }
-          } else if (foundZone.type === 'rectangle' && foundZone.coordinates.length >= 4) {
-            const [rx, ry, width, height] = foundZone.coordinates;
-            if (typeof rx === 'number' && typeof ry === 'number' && typeof width === 'number' && typeof height === 'number') {
-              ctx.fillRect(rx, ry, width, height);
-              ctx.strokeRect(rx, ry, width, height);
-            }
+          // Optimized visual feedback for hit
+          requestAnimationFrame(() => {
+            ctx.save();
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.restore();
+          });
+          
+          // Show the found risk zone temporarily with better validation
+          const foundZone = response.data.risk_zone;
+          if (foundZone && foundZone.coordinates && Array.isArray(foundZone.coordinates)) {
+            requestAnimationFrame(() => {
+              ctx.save();
+              ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+              ctx.strokeStyle = '#10b981';
+              ctx.lineWidth = 2;
+              
+              if (foundZone.type === 'circle' && foundZone.coordinates.length >= 3) {
+                const [cx, cy, radius] = foundZone.coordinates;
+                if (typeof cx === 'number' && typeof cy === 'number' && typeof radius === 'number') {
+                  ctx.beginPath();
+                  ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                  ctx.fill();
+                  ctx.stroke();
+                }
+              } else if (foundZone.type === 'rectangle' && foundZone.coordinates.length >= 4) {
+                const [rx, ry, width, height] = foundZone.coordinates;
+                if (typeof rx === 'number' && typeof ry === 'number' && typeof width === 'number' && typeof height === 'number') {
+                  ctx.fillRect(rx, ry, width, height);
+                  ctx.strokeRect(rx, ry, width, height);
+                }
+              }
+              ctx.restore();
+            });
           }
+          
+        } else {
+          showNotification('No risk found here', 'info');
+          
+          // Optimized visual feedback for miss
+          requestAnimationFrame(() => {
+            ctx.save();
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.restore();
+          });
         }
         
-      } else {
-        showNotification('No risk found here', 'info');
-        
-        // Visual feedback for miss
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, 2 * Math.PI);
-        ctx.stroke();
-      }
-      
-      // Update game session with new data
-      setGameSession(prev => normalizeGameSession({
-        ...prev,
-        clicks_used: response.data.clicks_used,
-        score: response.data.score,
-        found_risks: Array.isArray(response.data.found_risks) ? response.data.found_risks : (prev.found_risks || [])
-      }));
+        // Update game session with new data using optimized state update
+        setGameSession(prev => normalizeGameSession({
+          ...prev,
+          clicks_used: response.data.clicks_used,
+          score: response.data.score,
+          found_risks: Array.isArray(response.data.found_risks) ? response.data.found_risks : (prev.found_risks || [])
+        }));
 
-      // Check if game should end
-      if (response.data.game_status === 'completed' || response.data.clicks_remaining <= 0) {
-        handleGameEnd();
+        // Check if game should end
+        if (response.data.game_status === 'completed' || response.data.clicks_remaining <= 0) {
+          handleGameEnd();
+        }
+        
+        // Clear visual feedback and redraw zones after a delay
+        setTimeout(() => {
+          drawRiskZones(showCorrectionScreen);
+        }, 300);
+        
+      } catch (error) {
+        console.error('Error handling click:', error);
+        showNotification('Error processing click', 'error');
       }
-    } catch (error) {
-      console.error('Error handling click:', error);
-      showNotification('Error processing click', 'error');
-    }
+    }, 50); // 50ms debounce delay
   };
 
   const handleGameTimeout = async () => {
