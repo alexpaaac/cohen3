@@ -65,6 +65,9 @@ def create_test_image():
 created_image_id = None
 created_game_id = None
 created_session_id = None
+duplicate_image_id = None
+duplicate_game_id = None
+public_game_link = None
 
 def test_image_management():
     """Test Image Management API endpoints"""
