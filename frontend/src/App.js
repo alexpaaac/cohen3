@@ -35,7 +35,7 @@ const RiskHuntBuilder = () => {
   const [showResults, setShowResults] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [languages, setLanguages] = useState('en');
+  const [language, setLanguage] = useState('en');
   const [branding, setBranding] = useState({
     logo: '',
     primaryColor: '#3b82f6',
@@ -49,8 +49,133 @@ const RiskHuntBuilder = () => {
   const [gameStatistics, setGameStatistics] = useState(null);
   const [autoSaveInterval, setAutoSaveInterval] = useState(null);
   
+  // Settings state
+  const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+  const [riskZoneTemplates, setRiskZoneTemplates] = useState([]);
+  const [gameTemplates, setGameTemplates] = useState([]);
+  const [systemConfig, setSystemConfig] = useState({
+    defaultTimeLimit: 300,
+    defaultMaxClicks: 17,
+    defaultTargetRisks: 15,
+    enableAutoSave: true,
+    autoSaveInterval: 30,
+    theme: 'light',
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: '24h'
+  });
+  
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+
+  // Translations
+  const translations = {
+    en: {
+      title: 'Acapella Risk Hunt Builder',
+      builder: 'Builder',
+      games: 'Games',
+      play: 'Play',
+      results: 'Results',
+      settings: 'Settings',
+      upload: 'Upload Image',
+      createGame: 'Create Game',
+      startGame: 'Start Game',
+      duplicate: 'Duplicate',
+      delete: 'Delete',
+      edit: 'Edit',
+      cancel: 'Cancel',
+      save: 'Save',
+      export: 'Export',
+      gameName: 'Game Name',
+      description: 'Description',
+      timeLimit: 'Time Limit (seconds)',
+      maxClicks: 'Max Clicks',
+      targetRisks: 'Target Risks',
+      publicGame: 'Make game public',
+      selectGame: 'Select Game',
+      allGames: 'All Games',
+      filterByTeam: 'Filter by Team',
+      allTeams: 'All Teams',
+      viewMode: 'View Mode',
+      allPlayers: 'All Players',
+      individual: 'Individual',
+      byTeam: 'By Team',
+      exportCsv: 'Export CSV',
+      exportExcel: 'Export Excel',
+      exportPdf: 'Export PDF',
+      player: 'Player',
+      team: 'Team',
+      score: 'Score',
+      risksFound: 'Risks Found',
+      time: 'Time',
+      clicks: 'Clicks',
+      date: 'Date',
+      noResults: 'No results found',
+      confirmDelete: 'Confirm Delete',
+      cannotUndo: 'This action cannot be undone',
+      deleteConfirm: 'Are you sure you want to delete this',
+      showCorrectionScreen: 'Show Correction Screen',
+      viewResults: 'View Results',
+      gameCompleted: 'Game Completed!',
+      finalScore: 'Final Score',
+      risksFoundCount: 'Risks Found',
+      timeSpent: 'Time Spent',
+      clicksUsed: 'Clicks Used'
+    },
+    fr: {
+      title: 'Constructeur de Chasse aux Risques Acapella',
+      builder: 'Constructeur',
+      games: 'Jeux',
+      play: 'Jouer',
+      results: 'Résultats',
+      settings: 'Paramètres',
+      upload: 'Télécharger une image',
+      createGame: 'Créer un jeu',
+      startGame: 'Démarrer le jeu',
+      duplicate: 'Dupliquer',
+      delete: 'Supprimer',
+      edit: 'Modifier',
+      cancel: 'Annuler',
+      save: 'Sauvegarder',
+      export: 'Exporter',
+      gameName: 'Nom du jeu',
+      description: 'Description',
+      timeLimit: 'Limite de temps (secondes)',
+      maxClicks: 'Clics maximum',
+      targetRisks: 'Risques cibles',
+      publicGame: 'Rendre le jeu public',
+      selectGame: 'Sélectionner un jeu',
+      allGames: 'Tous les jeux',
+      filterByTeam: 'Filtrer par équipe',
+      allTeams: 'Toutes les équipes',
+      viewMode: 'Mode de vue',
+      allPlayers: 'Tous les joueurs',
+      individual: 'Individuel',
+      byTeam: 'Par équipe',
+      exportCsv: 'Exporter CSV',
+      exportExcel: 'Exporter Excel',
+      exportPdf: 'Exporter PDF',
+      player: 'Joueur',
+      team: 'Équipe',
+      score: 'Score',
+      risksFound: 'Risques trouvés',
+      time: 'Temps',
+      clicks: 'Clics',
+      date: 'Date',
+      noResults: 'Aucun résultat trouvé',
+      confirmDelete: 'Confirmer la suppression',
+      cannotUndo: 'Cette action ne peut pas être annulée',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer ce',
+      showCorrectionScreen: 'Afficher l\'écran de correction',
+      viewResults: 'Voir les résultats',
+      gameCompleted: 'Jeu terminé!',
+      finalScore: 'Score final',
+      risksFoundCount: 'Risques trouvés',
+      timeSpent: 'Temps passé',
+      clicksUsed: 'Clics utilisés'
+    }
+  };
+
+  const t = (key) => translations[language][key] || key;
 
   // Image cache for performance optimization
   const imageCache = useRef(new Map());
