@@ -873,5 +873,10 @@ if __name__ == "__main__":
     test_results_tracking()
     test_results_analytics()
     
+    # Run CRITICAL tests as requested in review
+    test_critical_deletion_functions()
+    test_critical_export_features()
+    test_critical_data_integrity()
+    
     # Print final summary
     print_summary()
