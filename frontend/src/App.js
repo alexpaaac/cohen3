@@ -1898,6 +1898,7 @@ const RiskHuntBuilder = () => {
         {activeTab === 'games' && renderGames()}
         {activeTab === 'play' && renderPlayGame()}
         {activeTab === 'results' && renderResults()}
+        {activeTab === 'settings' && renderSettings()}
       </div>
 
       {/* Modals */}
