@@ -1398,70 +1398,121 @@ const RiskHuntBuilder = () => {
             <h3 className="text-lg font-semibold mb-4">Risk Zones ({riskZones.length})</h3>
             
             {selectedRiskZone && (
-              <div className="selected-zone-editor mb-4 p-4 bg-gray-100 rounded">
-                <h4 className="font-semibold mb-2">Edit Risk Zone</h4>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="selected-zone-editor mb-6 p-6 bg-white rounded-lg shadow-lg border">
+                <h4 className="text-xl font-semibold mb-4 text-gray-800">Edit Risk Zone</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Risk Title</label>
                     <input
                       type="text"
                       value={selectedRiskZone.description}
-                      onChange={(e) => updateRiskZone(selectedRiskZone.id, {description: e.target.value})}
-                      className="w-full p-2 border rounded"
+                      onChange={(e) => {
+                        updateRiskZone(selectedRiskZone.id, {description: e.target.value});
+                        setUnsavedChanges(true);
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter risk title"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Difficulty</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Difficulty Level</label>
                     <select
                       value={selectedRiskZone.difficulty}
-                      onChange={(e) => updateRiskZone(selectedRiskZone.id, {difficulty: e.target.value})}
-                      className="w-full p-2 border rounded"
+                      onChange={(e) => {
+                        updateRiskZone(selectedRiskZone.id, {difficulty: e.target.value});
+                        setUnsavedChanges(true);
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="easy">Easy</option>
-                      <option value="medium">Medium</option>
-                      <option value="hard">Hard</option>
+                      <option value="easy">🟢 Easy (Low Risk)</option>
+                      <option value="medium">🟡 Medium (Moderate Risk)</option>
+                      <option value="hard">🔴 Hard (High Risk)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Points</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Points Value</label>
                     <input
                       type="number"
+                      min="1"
+                      max="10"
                       value={selectedRiskZone.points}
-                      onChange={(e) => updateRiskZone(selectedRiskZone.id, {points: parseInt(e.target.value)})}
-                      className="w-full p-2 border rounded"
+                      onChange={(e) => {
+                        updateRiskZone(selectedRiskZone.id, {points: parseInt(e.target.value)});
+                        setUnsavedChanges(true);
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Color</label>
-                    <input
-                      type="color"
-                      value={selectedRiskZone.color}
-                      onChange={(e) => updateRiskZone(selectedRiskZone.id, {color: e.target.value})}
-                      className="w-full p-2 border rounded"
-                    />
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Zone Color</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={selectedRiskZone.color}
+                        onChange={(e) => {
+                          updateRiskZone(selectedRiskZone.id, {color: e.target.value});
+                          setUnsavedChanges(true);
+                        }}
+                        className="w-16 h-12 border border-gray-300 rounded-lg cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={selectedRiskZone.color}
+                        onChange={(e) => {
+                          updateRiskZone(selectedRiskZone.id, {color: e.target.value});
+                          setUnsavedChanges(true);
+                        }}
+                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="#ff0000"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium mb-1">Explanation</label>
+                <div className="mt-6">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">Detailed Explanation</label>
                   <textarea
                     value={selectedRiskZone.explanation}
-                    onChange={(e) => updateRiskZone(selectedRiskZone.id, {explanation: e.target.value})}
-                    className="w-full p-2 border rounded"
+                    onChange={(e) => {
+                      updateRiskZone(selectedRiskZone.id, {explanation: e.target.value});
+                      setUnsavedChanges(true);
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     rows="3"
+                    placeholder="Provide a detailed explanation of this risk zone..."
                   />
                 </div>
-                <div className="mt-4">
-                  <button
-                    onClick={() => deleteRiskZone(selectedRiskZone.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Delete Zone
-                  </button>
+                <div className="mt-6 flex justify-between items-center">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => deleteRiskZone(selectedRiskZone.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      🗑️ Delete Zone
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Add resize functionality
+                        showNotification('Resize functionality coming soon', 'info');
+                      }}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      📐 Resize
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Add move functionality
+                        showNotification('Move functionality coming soon', 'info');
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      ↔️ Move
+                    </button>
+                  </div>
                   <button
                     onClick={() => setSelectedRiskZone(null)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    Close
+                    Close Editor
                   </button>
                 </div>
               </div>
