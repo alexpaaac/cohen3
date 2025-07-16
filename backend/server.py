@@ -616,6 +616,8 @@ async def export_results(game_id: str, format: str = "csv"):
         else:
             raise HTTPException(status_code=400, detail="Unsupported format")
             
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exporting results: {str(e)}")
 
