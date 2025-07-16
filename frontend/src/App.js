@@ -661,6 +661,12 @@ const RiskHuntBuilder = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
+    // Safety check for canvas context
+    if (!ctx) {
+      console.warn('Canvas context not available');
+      return;
+    }
+    
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
