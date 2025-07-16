@@ -288,6 +288,16 @@ const RiskHuntBuilder = () => {
   const loadImages = loadImagesOptimized;
   const loadGames = loadGamesOptimized;
   const loadResults = loadResultsOptimized;
+  
+  // Analytics loading function
+  const loadAnalytics = async (gameId) => {
+    try {
+      const response = await axios.get(`${API}/results/analytics/${gameId}`);
+      setAnalytics(response.data);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    }
+  };
 
   // Load data on component mount
   useEffect(() => {
