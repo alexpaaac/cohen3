@@ -623,10 +623,14 @@ if __name__ == "__main__":
     # Run all tests in sequence
     test_sample_data_setup()
     test_image_management()
+    test_enhanced_image_management()
     test_risk_zone_annotation()
     test_game_configuration()
+    test_enhanced_game_management()
     test_game_session_management()
+    test_enhanced_session_management()
     test_results_tracking()
+    test_results_analytics()
     
     # Print final summary
     print_summary()
