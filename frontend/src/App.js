@@ -52,6 +52,64 @@ const RiskHuntBuilder = () => {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
 
+  // Image cache for performance optimization
+  const imageCache = useRef(new Map());
+  
+  // Lazy image loading component
+  const LazyImage = React.memo(({ src, alt, className, onError, style }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isInView, setIsInView] = useState(false);
+    const imgRef = useRef(null);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      if (imgRef.current) {
+        observer.observe(imgRef.current);
+      }
+
+      return () => observer.disconnect();
+    }, []);
+
+    const handleLoad = () => {
+      setIsLoaded(true);
+      // Cache the loaded image
+      if (src) {
+        imageCache.current.set(src, true);
+      }
+    };
+
+    return (
+      <div ref={imgRef} className={className} style={style}>
+        {isInView && (
+          <img
+            src={src}
+            alt={alt}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={handleLoad}
+            onError={onError}
+            loading="lazy"
+          />
+        )}
+        {!isLoaded && isInView && (
+          <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+            <span className="text-gray-500 text-sm">Loading...</span>
+          </div>
+        )}
+      </div>
+    );
+  });
+
   // Utility function to ensure gameSession has proper structure
   const normalizeGameSession = (session) => {
     if (!session) return null;
