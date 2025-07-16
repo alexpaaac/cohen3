@@ -502,19 +502,69 @@ const RiskHuntBuilder = () => {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
+    // Provide immediate visual feedback
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Clear the visual feedback after a short delay
+    setTimeout(() => {
+      drawRiskZones(showCorrectionScreen);
+    }, 200);
+
     try {
       const response = await axios.post(`${API}/sessions/${gameSession.id}/click`, { x, y });
       
       if (response.data.hit) {
-        showNotification(`Great! You found: ${response.data.risk_zone.description}`, 'success');
+        // Show hit animation
+        showNotification(`🎯 Risk Found: ${response.data.risk_zone.description}`, 'success');
+        
+        // Visual feedback for hit
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // Show the found risk zone temporarily
+        const foundZone = response.data.risk_zone;
+        if (foundZone) {
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 2;
+          
+          if (foundZone.type === 'circle') {
+            const [cx, cy, radius] = foundZone.coordinates;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+          } else if (foundZone.type === 'rectangle') {
+            const [rx, ry, width, height] = foundZone.coordinates;
+            ctx.fillRect(rx, ry, width, height);
+            ctx.strokeRect(rx, ry, width, height);
+          }
+        }
+        
       } else {
-        showNotification('No risk found at this location', 'info');
+        showNotification('No risk found here', 'info');
+        
+        // Visual feedback for miss
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+        ctx.stroke();
       }
       
+      // Update game session with new data
       setGameSession(prev => ({
         ...prev,
         clicks_used: response.data.clicks_used,
-        score: response.data.score
+        score: response.data.score,
+        found_risks: response.data.found_risks || prev.found_risks
       }));
 
       // Check if game should end
@@ -523,6 +573,7 @@ const RiskHuntBuilder = () => {
       }
     } catch (error) {
       console.error('Error handling click:', error);
+      showNotification('Error processing click', 'error');
     }
   };
 
