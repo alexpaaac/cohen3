@@ -273,6 +273,11 @@ async def get_game(game_id: str):
 async def update_game(game_id: str, game_data: dict):
     try:
         game_data["updated_at"] = datetime.utcnow()
+        
+        # Generate public link if game is being made public
+        if game_data.get("is_public") and not game_data.get("public_link"):
+            game_data["public_link"] = f"game-{game_id}"
+        
         result = await db.games.update_one(
             {"id": game_id},
             {"$set": game_data}
