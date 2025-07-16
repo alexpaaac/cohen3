@@ -299,6 +299,7 @@ def test_results_tracking():
             "total_score": 85,
             "total_risks_found": 12,
             "total_time_spent": 240,
+            "total_clicks_used": 15,
             "image_results": [
                 {
                     "image_id": created_image_id if created_image_id else "test_image_id",
