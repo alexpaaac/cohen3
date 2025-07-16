@@ -944,19 +944,19 @@ const RiskHuntBuilder = () => {
               >
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   {image.image_data.startsWith('http') ? (
-                    <img 
-                      src={image.image_data} 
-                      alt={image.name} 
-                      className="w-full h-full object-cover"
+                    <LazyImage
+                      src={image.image_data}
+                      alt={image.name}
+                      className="w-full h-full"
                       onError={(e) => {
                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
                       }}
                     />
                   ) : (
-                    <img 
-                      src={`data:image/jpeg;base64,${image.image_data}`} 
-                      alt={image.name} 
-                      className="w-full h-full object-cover"
+                    <LazyImage
+                      src={`data:image/jpeg;base64,${image.image_data}`}
+                      alt={image.name}
+                      className="w-full h-full"
                       onError={(e) => {
                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
                       }}
