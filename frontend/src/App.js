@@ -52,6 +52,18 @@ const RiskHuntBuilder = () => {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
 
+  // Utility function to ensure gameSession has proper structure
+  const normalizeGameSession = (session) => {
+    if (!session) return null;
+    return {
+      ...session,
+      found_risks: Array.isArray(session.found_risks) ? session.found_risks : [],
+      clicks_used: session.clicks_used || 0,
+      score: session.score || 0,
+      status: session.status || 'active'
+    };
+  };
+
   // Auto-save functionality
   useEffect(() => {
     if (unsavedChanges && selectedImage && riskZones.length > 0) {
