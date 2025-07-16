@@ -40,11 +40,28 @@ const RiskHuntBuilder = () => {
     logo: '',
     primaryColor: '#3b82f6',
     secondaryColor: '#ef4444',
-    companyName: 'A Capella'
+    companyName: 'Acapella'
   });
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [showCorrectionScreen, setShowCorrectionScreen] = useState(false);
+  const [gameStatistics, setGameStatistics] = useState(null);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(null);
   
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (unsavedChanges && selectedImage && riskZones.length > 0) {
+      const interval = setInterval(() => {
+        saveRiskZones(true); // Silent save
+      }, 30000); // Auto-save every 30 seconds
+      setAutoSaveInterval(interval);
+      return () => clearInterval(interval);
+    }
+  }, [unsavedChanges, selectedImage, riskZones]);
 
   // Load data on component mount
   useEffect(() => {
@@ -69,6 +86,19 @@ const RiskHuntBuilder = () => {
     }
     return () => clearInterval(interval);
   }, [gameSession, timeRemaining]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (unsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [unsavedChanges]);
 
   const loadImages = async () => {
     try {
@@ -120,6 +150,34 @@ const RiskHuntBuilder = () => {
     }, 5000);
   };
 
+  const saveToUndoStack = () => {
+    setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(riskZones))]);
+    setRedoStack([]); // Clear redo stack when new action is performed
+    if (undoStack.length > 20) {
+      setUndoStack(prev => prev.slice(1)); // Keep only last 20 states
+    }
+  };
+
+  const undo = () => {
+    if (undoStack.length > 0) {
+      const previousState = undoStack[undoStack.length - 1];
+      setRedoStack(prev => [...prev, JSON.parse(JSON.stringify(riskZones))]);
+      setRiskZones(previousState);
+      setUndoStack(prev => prev.slice(0, -1));
+      setUnsavedChanges(true);
+    }
+  };
+
+  const redo = () => {
+    if (redoStack.length > 0) {
+      const nextState = redoStack[redoStack.length - 1];
+      setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(riskZones))]);
+      setRiskZones(nextState);
+      setRedoStack(prev => prev.slice(0, -1));
+      setUnsavedChanges(true);
+    }
+  };
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -142,10 +200,18 @@ const RiskHuntBuilder = () => {
   };
 
   const selectImage = async (imageId) => {
+    if (unsavedChanges) {
+      const shouldContinue = window.confirm('You have unsaved changes. Do you want to continue without saving?');
+      if (!shouldContinue) return;
+    }
+
     try {
       const response = await axios.get(`${API}/images/${imageId}`);
       setSelectedImage(response.data);
       setRiskZones(response.data.risk_zones || []);
+      setUnsavedChanges(false);
+      setUndoStack([]);
+      setRedoStack([]);
     } catch (error) {
       console.error('Error selecting image:', error);
     }
@@ -177,6 +243,9 @@ const RiskHuntBuilder = () => {
       return;
     }
 
+    // Save to undo stack before creating new zone
+    saveToUndoStack();
+
     // Create new risk zone
     if (currentTool === 'circle') {
       const newRiskZone = {
@@ -190,6 +259,7 @@ const RiskHuntBuilder = () => {
         color: '#ff0000'
       };
       setRiskZones([...riskZones, newRiskZone]);
+      setUnsavedChanges(true);
     } else if (currentTool === 'rectangle') {
       const newRiskZone = {
         id: Date.now().toString(),
@@ -202,6 +272,7 @@ const RiskHuntBuilder = () => {
         color: '#ff0000'
       };
       setRiskZones([...riskZones, newRiskZone]);
+      setUnsavedChanges(true);
     }
   };
 
@@ -230,25 +301,34 @@ const RiskHuntBuilder = () => {
   };
 
   const updateRiskZone = (zoneId, updates) => {
+    saveToUndoStack();
     setRiskZones(zones => zones.map(zone => 
       zone.id === zoneId ? { ...zone, ...updates } : zone
     ));
+    setUnsavedChanges(true);
   };
 
   const deleteRiskZone = (zoneId) => {
+    saveToUndoStack();
     setRiskZones(zones => zones.filter(zone => zone.id !== zoneId));
     setSelectedRiskZone(null);
+    setUnsavedChanges(true);
   };
 
-  const saveRiskZones = async () => {
+  const saveRiskZones = async (silent = false) => {
     if (!selectedImage) return;
 
     try {
       await axios.put(`${API}/images/${selectedImage.id}/risk-zones`, riskZones);
-      showNotification('Risk zones saved successfully', 'success');
+      setUnsavedChanges(false);
+      if (!silent) {
+        showNotification('Risk zones saved successfully', 'success');
+      }
     } catch (error) {
       console.error('Error saving risk zones:', error);
-      showNotification('Error saving risk zones', 'error');
+      if (!silent) {
+        showNotification('Error saving risk zones', 'error');
+      }
     }
   };
 
@@ -304,6 +384,21 @@ const RiskHuntBuilder = () => {
     }
   };
 
+  const deleteImage = async (imageId) => {
+    try {
+      await axios.delete(`${API}/images/${imageId}`);
+      loadImages();
+      if (selectedImage?.id === imageId) {
+        setSelectedImage(null);
+        setRiskZones([]);
+      }
+      showNotification('Image deleted successfully', 'success');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      showNotification('Error deleting image', 'error');
+    }
+  };
+
   const duplicateGame = async (gameId) => {
     try {
       await axios.post(`${API}/games/${gameId}/duplicate`);
@@ -315,14 +410,27 @@ const RiskHuntBuilder = () => {
     }
   };
 
+  const duplicateImage = async (imageId) => {
+    try {
+      await axios.post(`${API}/images/${imageId}/duplicate`);
+      loadImages();
+      showNotification('Image duplicated successfully', 'success');
+    } catch (error) {
+      console.error('Error duplicating image:', error);
+      showNotification('Error duplicating image', 'error');
+    }
+  };
+
   const startGame = async (gameId) => {
     const playerName = prompt('Enter your name:');
     if (!playerName) return;
 
+    const teamName = prompt('Enter your team name (optional):') || 'Default Team';
+
     const session = {
       game_id: gameId,
       player_name: playerName,
-      team_name: 'Default Team'
+      team_name: teamName
     };
 
     try {
@@ -333,6 +441,7 @@ const RiskHuntBuilder = () => {
       setTimeRemaining(game.time_limit);
       setGameEnded(false);
       setActiveTab('play');
+      setShowCorrectionScreen(false);
       
       // Load first image
       if (game.images.length > 0) {
@@ -368,7 +477,7 @@ const RiskHuntBuilder = () => {
       }));
 
       // Check if game should end
-      if (response.data.game_status === 'completed') {
+      if (response.data.game_status === 'completed' || response.data.clicks_remaining <= 0) {
         handleGameEnd();
       }
     } catch (error) {
@@ -391,10 +500,15 @@ const RiskHuntBuilder = () => {
     setGameEnded(true);
     setGameSession(prev => ({ ...prev, status: 'completed' }));
     loadResults();
-    setActiveTab('results');
+    setShowCorrectionScreen(true);
   };
 
   const exportResults = async (gameId, format) => {
+    if (!gameId) {
+      showNotification('Please select a game first', 'warning');
+      return;
+    }
+
     try {
       const response = await axios.get(`${API}/results/export/${gameId}?format=${format}`, {
         responseType: 'blob'
@@ -403,10 +517,11 @@ const RiskHuntBuilder = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `game_results_${gameId}.${format}`);
+      link.setAttribute('download', `game_results_${gameId}.${format === 'excel' ? 'xlsx' : format}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       
       showNotification(`Results exported as ${format.toUpperCase()}`, 'success');
     } catch (error) {
@@ -415,7 +530,7 @@ const RiskHuntBuilder = () => {
     }
   };
 
-  const drawRiskZones = () => {
+  const drawRiskZones = (showAll = false) => {
     if (!canvasRef.current || !selectedImage) return;
 
     const canvas = canvasRef.current;
@@ -429,20 +544,22 @@ const RiskHuntBuilder = () => {
       const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
       const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
       
-      ctx.strokeStyle = isSelected ? '#00ff00' : (isHovered ? '#ffff00' : zone.color);
-      ctx.lineWidth = isSelected ? 3 : (isHovered ? 2 : 1);
-      ctx.fillStyle = isSelected ? 'rgba(0, 255, 0, 0.2)' : (isHovered ? 'rgba(255, 255, 0, 0.2)' : `${zone.color}33`);
-      
-      if (zone.type === 'circle') {
-        const [x, y, radius] = zone.coordinates;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
-        ctx.stroke();
-        if (isHovered || isSelected) ctx.fill();
-      } else if (zone.type === 'rectangle') {
-        const [x, y, width, height] = zone.coordinates;
-        ctx.strokeRect(x, y, width, height);
-        if (isHovered || isSelected) ctx.fillRect(x, y, width, height);
+      if (showAll || isHovered || isSelected || activeTab === 'builder') {
+        ctx.strokeStyle = isSelected ? '#00ff00' : (isHovered ? '#ffff00' : zone.color);
+        ctx.lineWidth = isSelected ? 3 : (isHovered ? 2 : 1);
+        ctx.fillStyle = isSelected ? 'rgba(0, 255, 0, 0.2)' : (isHovered ? 'rgba(255, 255, 0, 0.2)' : `${zone.color}33`);
+        
+        if (zone.type === 'circle') {
+          const [x, y, radius] = zone.coordinates;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, 2 * Math.PI);
+          ctx.stroke();
+          if (isHovered || isSelected || showAll) ctx.fill();
+        } else if (zone.type === 'rectangle') {
+          const [x, y, width, height] = zone.coordinates;
+          ctx.strokeRect(x, y, width, height);
+          if (isHovered || isSelected || showAll) ctx.fillRect(x, y, width, height);
+        }
       }
     });
   };
@@ -454,8 +571,8 @@ const RiskHuntBuilder = () => {
   };
 
   useEffect(() => {
-    drawRiskZones();
-  }, [riskZones, selectedImage, hoveredRiskZone, selectedRiskZone]);
+    drawRiskZones(showCorrectionScreen);
+  }, [riskZones, selectedImage, hoveredRiskZone, selectedRiskZone, showCorrectionScreen]);
 
   const renderNotifications = () => (
     <div className="notifications">
@@ -470,7 +587,12 @@ const RiskHuntBuilder = () => {
   const renderBuilder = () => (
     <div className="builder-container">
       <div className="builder-header">
-        <h2 className="text-2xl font-bold mb-6">Risk Hunt Game Builder</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Risk Hunt Game Builder</h2>
+          {unsavedChanges && (
+            <span className="text-orange-600 font-semibold">⚠️ Unsaved Changes</span>
+          )}
+        </div>
         
         {/* Game Configuration */}
         <div className="game-config-section mb-6">
@@ -586,6 +708,15 @@ const RiskHuntBuilder = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      duplicateImage(image.id);
+                    }}
+                    className="text-green-500 hover:text-green-700 text-xs"
+                  >
+                    Duplicate
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowDeleteModal({type: 'image', id: image.id});
                     }}
                     className="text-red-500 hover:text-red-700 text-xs"
@@ -619,7 +750,21 @@ const RiskHuntBuilder = () => {
               Rectangle Tool
             </button>
             <button
-              onClick={saveRiskZones}
+              onClick={() => undo()}
+              disabled={undoStack.length === 0}
+              className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-4 py-2 rounded mr-2"
+            >
+              Undo
+            </button>
+            <button
+              onClick={() => redo()}
+              disabled={redoStack.length === 0}
+              className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-4 py-2 rounded mr-2"
+            >
+              Redo
+            </button>
+            <button
+              onClick={() => saveRiskZones()}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mr-2"
             >
               Save Risk Zones
@@ -815,6 +960,7 @@ const RiskHuntBuilder = () => {
                 onClick={() => {
                   loadAnalytics(game.id);
                   setShowResults(true);
+                  setActiveTab('results');
                 }}
                 className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
               >
@@ -845,8 +991,14 @@ const RiskHuntBuilder = () => {
               <p>Final Score: {gameSession.score}</p>
               <p>Clicks Used: {gameSession.clicks_used}</p>
               <button
+                onClick={() => setShowCorrectionScreen(true)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2 mr-2"
+              >
+                Show Correction Screen
+              </button>
+              <button
                 onClick={() => setActiveTab('results')}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded mt-2"
               >
                 View Results
               </button>
@@ -855,7 +1007,56 @@ const RiskHuntBuilder = () => {
         </div>
       )}
       
-      {selectedImage && gameSession && gameSession.status === 'active' && (
+      {showCorrectionScreen && selectedImage && (
+        <div className="correction-screen mb-6">
+          <h3 className="text-lg font-semibold mb-4">Correction Screen - All Risks Revealed</h3>
+          <div className="relative">
+            {selectedImage.image_data.startsWith('http') ? (
+              <img
+                ref={imageRef}
+                src={selectedImage.image_data}
+                alt={selectedImage.name}
+                className="max-w-full h-auto"
+                onLoad={() => {
+                  if (canvasRef.current && imageRef.current) {
+                    canvasRef.current.width = imageRef.current.width;
+                    canvasRef.current.height = imageRef.current.height;
+                    drawRiskZones(true);
+                  }
+                }}
+              />
+            ) : (
+              <img
+                ref={imageRef}
+                src={`data:image/jpeg;base64,${selectedImage.image_data}`}
+                alt={selectedImage.name}
+                className="max-w-full h-auto"
+                onLoad={() => {
+                  if (canvasRef.current && imageRef.current) {
+                    canvasRef.current.width = imageRef.current.width;
+                    canvasRef.current.height = imageRef.current.height;
+                    drawRiskZones(true);
+                  }
+                }}
+              />
+            )}
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0"
+            />
+          </div>
+          <div className="risk-explanations mt-4">
+            <h4 className="font-semibold mb-2">Risk Explanations:</h4>
+            {riskZones.map(zone => (
+              <div key={zone.id} className="mb-2 p-2 bg-gray-100 rounded">
+                <strong>{zone.description}:</strong> {zone.explanation}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {selectedImage && gameSession && gameSession.status === 'active' && !showCorrectionScreen && (
         <div className="relative">
           {selectedImage.image_data.startsWith('http') ? (
             <img
@@ -927,13 +1128,13 @@ const RiskHuntBuilder = () => {
           <h3 className="text-lg font-semibold">Game Results</h3>
           <div className="flex gap-2">
             <button
-              onClick={() => exportResults(analytics?.results?.[0]?.game_id, 'csv')}
+              onClick={() => exportResults(analytics?.results?.[0]?.game_id || selectedGame?.id, 'csv')}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
             >
               Export CSV
             </button>
             <button
-              onClick={() => exportResults(analytics?.results?.[0]?.game_id, 'excel')}
+              onClick={() => exportResults(analytics?.results?.[0]?.game_id || selectedGame?.id, 'excel')}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             >
               Export Excel
@@ -984,10 +1185,10 @@ const RiskHuntBuilder = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">R</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-sm">A</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800">Risk Hunt Builder</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Acapella Risk Hunt Builder</h1>
             </div>
             <div className="flex space-x-4">
               <button
@@ -1045,8 +1246,8 @@ const RiskHuntBuilder = () => {
 
       {/* Modals */}
       {editingItem && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="modal bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Edit {editingItem.type}</h3>
             <input
               type="text"
@@ -1078,8 +1279,8 @@ const RiskHuntBuilder = () => {
       )}
 
       {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="modal bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
             <p className="mb-4">Are you sure you want to delete this {showDeleteModal.type}?</p>
             <div className="flex gap-2">
@@ -1093,6 +1294,8 @@ const RiskHuntBuilder = () => {
                 onClick={() => {
                   if (showDeleteModal.type === 'game') {
                     deleteGame(showDeleteModal.id);
+                  } else if (showDeleteModal.type === 'image') {
+                    deleteImage(showDeleteModal.id);
                   }
                   setShowDeleteModal(null);
                 }}
