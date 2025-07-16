@@ -199,6 +199,96 @@ const RiskHuntBuilder = () => {
     }
   }, [unsavedChanges, selectedImage, riskZones]);
 
+  // API cache for better performance
+  const apiCache = useRef(new Map());
+  
+  // Optimized data loading with caching
+  const loadImagesOptimized = async () => {
+    const cacheKey = 'images';
+    const cachedData = apiCache.current.get(cacheKey);
+    const now = Date.now();
+    
+    // Use cached data if it's less than 1 minute old
+    if (cachedData && (now - cachedData.timestamp) < 60000) {
+      setImages(cachedData.data);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/images`);
+      const data = response.data;
+      
+      // Cache the data
+      apiCache.current.set(cacheKey, {
+        data,
+        timestamp: now
+      });
+      
+      setImages(data);
+    } catch (error) {
+      console.error('Error loading images:', error);
+    }
+  };
+
+  const loadGamesOptimized = async () => {
+    const cacheKey = 'games';
+    const cachedData = apiCache.current.get(cacheKey);
+    const now = Date.now();
+    
+    // Use cached data if it's less than 1 minute old
+    if (cachedData && (now - cachedData.timestamp) < 60000) {
+      setGames(cachedData.data);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/games`);
+      const data = response.data;
+      
+      // Cache the data
+      apiCache.current.set(cacheKey, {
+        data,
+        timestamp: now
+      });
+      
+      setGames(data);
+    } catch (error) {
+      console.error('Error loading games:', error);
+    }
+  };
+
+  const loadResultsOptimized = async () => {
+    const cacheKey = 'results';
+    const cachedData = apiCache.current.get(cacheKey);
+    const now = Date.now();
+    
+    // Use cached data if it's less than 30 seconds old (results need to be fresher)
+    if (cachedData && (now - cachedData.timestamp) < 30000) {
+      setResults(cachedData.data);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/results`);
+      const data = response.data;
+      
+      // Cache the data
+      apiCache.current.set(cacheKey, {
+        data,
+        timestamp: now
+      });
+      
+      setResults(data);
+    } catch (error) {
+      console.error('Error loading results:', error);
+    }
+  };
+
+  // Backward compatibility aliases
+  const loadImages = loadImagesOptimized;
+  const loadGames = loadGamesOptimized;
+  const loadResults = loadResultsOptimized;
+
   // Load data on component mount
   useEffect(() => {
     loadImages();
