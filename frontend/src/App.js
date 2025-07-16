@@ -572,7 +572,7 @@ const RiskHuntBuilder = () => {
       }
       
       // Update game session with new data
-      setGameSession(prev => ({
+      setGameSession(prev => normalizeGameSession({
         ...prev,
         clicks_used: response.data.clicks_used,
         score: response.data.score,
