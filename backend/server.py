@@ -160,6 +160,8 @@ async def get_image(image_id: str):
         if not image:
             raise HTTPException(status_code=404, detail="Image not found")
         return serialize_doc(image)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching image: {str(e)}")
 
