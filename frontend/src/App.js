@@ -510,12 +510,16 @@ const RiskHuntBuilder = () => {
     if (!gameSession || gameSession.status !== 'active' || !selectedImage) return;
 
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
     // Provide immediate visual feedback
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
     ctx.arc(x, y, 15, 0, 2 * Math.PI);
