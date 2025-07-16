@@ -635,22 +635,69 @@ const RiskHuntBuilder = () => {
     riskZones.forEach(zone => {
       const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
       const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
+      const isFound = gameSession && gameSession.found_risks && gameSession.found_risks.includes(zone.id);
       
-      if (showAll || isHovered || isSelected || activeTab === 'builder') {
-        ctx.strokeStyle = isSelected ? '#00ff00' : (isHovered ? '#ffff00' : zone.color);
-        ctx.lineWidth = isSelected ? 3 : (isHovered ? 2 : 1);
-        ctx.fillStyle = isSelected ? 'rgba(0, 255, 0, 0.2)' : (isHovered ? 'rgba(255, 255, 0, 0.2)' : `${zone.color}33`);
+      // Show risk zones in different scenarios:
+      // 1. Builder mode - always show
+      // 2. Correction screen - show all
+      // 3. During gameplay - only show found ones
+      // 4. Hover/selected states
+      const shouldShow = activeTab === 'builder' || showAll || isHovered || isSelected || isFound;
+      
+      if (shouldShow) {
+        // Different styling based on context
+        if (isFound) {
+          ctx.strokeStyle = '#10b981'; // Green for found risks
+          ctx.lineWidth = 2;
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+        } else if (isSelected) {
+          ctx.strokeStyle = '#00ff00'; // Bright green for selected
+          ctx.lineWidth = 3;
+          ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+        } else if (isHovered) {
+          ctx.strokeStyle = '#ffff00'; // Yellow for hovered
+          ctx.lineWidth = 2;
+          ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+        } else {
+          ctx.strokeStyle = zone.color;
+          ctx.lineWidth = 1;
+          ctx.fillStyle = `${zone.color}33`;
+        }
         
         if (zone.type === 'circle') {
           const [x, y, radius] = zone.coordinates;
           ctx.beginPath();
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.stroke();
-          if (isHovered || isSelected || showAll) ctx.fill();
+          if (isHovered || isSelected || showAll || isFound) ctx.fill();
         } else if (zone.type === 'rectangle') {
           const [x, y, width, height] = zone.coordinates;
           ctx.strokeRect(x, y, width, height);
-          if (isHovered || isSelected || showAll) ctx.fillRect(x, y, width, height);
+          if (isHovered || isSelected || showAll || isFound) ctx.fillRect(x, y, width, height);
+        }
+        
+        // Add zone labels in builder mode or correction screen
+        if ((activeTab === 'builder' || showAll) && zone.description) {
+          ctx.fillStyle = '#000';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          
+          let labelX, labelY;
+          if (zone.type === 'circle') {
+            [labelX, labelY] = zone.coordinates;
+          } else if (zone.type === 'rectangle') {
+            const [x, y, width, height] = zone.coordinates;
+            labelX = x + width / 2;
+            labelY = y + height / 2;
+          }
+          
+          // Add background to text for better readability
+          const textWidth = ctx.measureText(zone.description).width;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillRect(labelX - textWidth/2 - 4, labelY - 8, textWidth + 8, 16);
+          
+          ctx.fillStyle = '#000';
+          ctx.fillText(zone.description, labelX, labelY + 4);
         }
       }
     });
