@@ -374,28 +374,44 @@ const RiskHuntBuilder = () => {
   };
 
   const deleteGame = async (gameId) => {
+    // Optimistic update - remove from UI immediately
+    setGames(prev => prev.filter(game => game.id !== gameId));
+    showNotification('Deleting game...', 'info');
+    
     try {
       await axios.delete(`${API}/games/${gameId}`);
-      loadGames();
       showNotification('Game deleted successfully', 'success');
     } catch (error) {
       console.error('Error deleting game:', error);
       showNotification('Error deleting game', 'error');
+      // Revert optimistic update on error
+      loadGames();
     }
   };
 
   const deleteImage = async (imageId) => {
+    // Optimistic update - remove from UI immediately
+    setImages(prev => prev.filter(image => image.id !== imageId));
+    
+    // Clear selection if this image was selected
+    if (selectedImage?.id === imageId) {
+      setSelectedImage(null);
+      setRiskZones([]);
+    }
+    
+    showNotification('Deleting image...', 'info');
+    
     try {
       await axios.delete(`${API}/images/${imageId}`);
-      loadImages();
-      if (selectedImage?.id === imageId) {
-        setSelectedImage(null);
-        setRiskZones([]);
-      }
       showNotification('Image deleted successfully', 'success');
     } catch (error) {
       console.error('Error deleting image:', error);
       showNotification('Error deleting image', 'error');
+      // Revert optimistic update on error
+      loadImages();
+      if (selectedImage?.id === imageId) {
+        selectImage(imageId); // Try to restore selection
+      }
     }
   };
 
