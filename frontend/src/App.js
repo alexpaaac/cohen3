@@ -122,7 +122,73 @@ const RiskHuntBuilder = () => {
     };
   };
 
-  // Auto-save functionality
+  // Memoized components for better performance
+  const GameConfigForm = React.memo(({ config, setConfig }) => (
+    <div className="game-config mb-6">
+      <h3 className="text-lg font-semibold mb-4">Game Configuration</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Game Name</label>
+          <input
+            type="text"
+            value={config.name}
+            onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter game name"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <input
+            type="text"
+            value={config.description}
+            onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter description"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (seconds)</label>
+          <input
+            type="number"
+            value={config.time_limit}
+            onChange={(e) => setConfig(prev => ({ ...prev, time_limit: parseInt(e.target.value) }))}
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Max Clicks</label>
+          <input
+            type="number"
+            value={config.max_clicks}
+            onChange={(e) => setConfig(prev => ({ ...prev, max_clicks: parseInt(e.target.value) }))}
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Target Risks</label>
+          <input
+            type="number"
+            value={config.target_risks}
+            onChange={(e) => setConfig(prev => ({ ...prev, target_risks: parseInt(e.target.value) }))}
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="public-game"
+            checked={config.is_public}
+            onChange={(e) => setConfig(prev => ({ ...prev, is_public: e.target.checked }))}
+            className="mr-2"
+          />
+          <label htmlFor="public-game" className="text-sm font-medium text-gray-700">Make game public</label>
+        </div>
+      </div>
+    </div>
+  ));
+
+  // Auto-save functionality with optimized dependencies
   useEffect(() => {
     if (unsavedChanges && selectedImage && riskZones.length > 0) {
       const interval = setInterval(() => {
