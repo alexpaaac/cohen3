@@ -248,13 +248,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Image Management API"
-    - "Risk Zone Annotation API"
-    - "Game Configuration API"
-    - "Game Session Management API"
+  current_focus: []
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
