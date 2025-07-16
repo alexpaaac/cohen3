@@ -310,7 +310,7 @@ async def save_result(result: GameResult):
 async def get_results():
     try:
         results = await db.results.find().to_list(100)
-        return results
+        return serialize_doc(results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching results: {str(e)}")
 
