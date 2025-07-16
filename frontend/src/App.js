@@ -679,50 +679,70 @@ const RiskHuntBuilder = () => {
 
         {/* Image Gallery */}
         <div className="image-gallery mb-6">
-          <h3 className="text-lg font-semibold mb-4">Select Image</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <h3 className="text-lg font-semibold mb-4">Select Image ({images.length} images)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map(image => (
               <div
                 key={image.id}
-                className={`cursor-pointer border-2 rounded-lg p-2 ${
-                  selectedImage?.id === image.id ? 'border-blue-500' : 'border-gray-300'
+                className={`cursor-pointer border-2 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 ${
+                  selectedImage?.id === image.id ? 'border-blue-500 shadow-md' : 'border-gray-300'
                 }`}
                 onClick={() => selectImage(image.id)}
               >
-                {image.image_data.startsWith('http') ? (
-                  <img src={image.image_data} alt={image.name} className="w-full h-32 object-cover rounded" />
-                ) : (
-                  <img src={`data:image/jpeg;base64,${image.image_data}`} alt={image.name} className="w-full h-32 object-cover rounded" />
-                )}
-                <p className="text-sm mt-2">{image.name}</p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingItem({type: 'image', id: image.id, name: image.name});
-                    }}
-                    className="text-blue-500 hover:text-blue-700 text-xs"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      duplicateImage(image.id);
-                    }}
-                    className="text-green-500 hover:text-green-700 text-xs"
-                  >
-                    Duplicate
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteModal({type: 'image', id: image.id});
-                    }}
-                    className="text-red-500 hover:text-red-700 text-xs"
-                  >
-                    Delete
-                  </button>
+                <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                  {image.image_data.startsWith('http') ? (
+                    <img 
+                      src={image.image_data} 
+                      alt={image.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      src={`data:image/jpeg;base64,${image.image_data}`} 
+                      alt={image.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
+                      }}
+                    />
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-medium text-gray-800 truncate" title={image.name}>
+                    {image.name}
+                  </p>
+                  <div className="flex gap-1 mt-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingItem({type: 'image', id: image.id, name: image.name});
+                      }}
+                      className="flex-1 text-blue-500 hover:text-blue-700 text-xs py-1 px-2 rounded hover:bg-blue-50 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateImage(image.id);
+                      }}
+                      className="flex-1 text-green-500 hover:text-green-700 text-xs py-1 px-2 rounded hover:bg-green-50 transition-colors"
+                    >
+                      Clone
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteModal({type: 'image', id: image.id, name: image.name});
+                      }}
+                      className="flex-1 text-red-500 hover:text-red-700 text-xs py-1 px-2 rounded hover:bg-red-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
