@@ -1300,18 +1300,46 @@ const RiskHuntBuilder = () => {
 
       {showDeleteModal && (
         <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="modal bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
-            <p className="mb-4">Are you sure you want to delete this {showDeleteModal.type}?</p>
-            <div className="flex gap-2">
+          <div className="modal bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-700 mb-2">Are you sure you want to delete this {showDeleteModal.type}?</p>
+              {showDeleteModal.name && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-800">
+                    <span className="text-gray-600">Name:</span> {showDeleteModal.name}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(null)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
+                  // Show loading state immediately
+                  const deleteBtn = document.querySelector('.delete-confirm-btn');
+                  if (deleteBtn) {
+                    deleteBtn.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Deleting...</span>';
+                    deleteBtn.disabled = true;
+                  }
+                  
                   if (showDeleteModal.type === 'game') {
                     deleteGame(showDeleteModal.id);
                   } else if (showDeleteModal.type === 'image') {
@@ -1319,9 +1347,9 @@ const RiskHuntBuilder = () => {
                   }
                   setShowDeleteModal(null);
                 }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                className="delete-confirm-btn flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
               >
-                Delete
+                Delete {showDeleteModal.type}
               </button>
             </div>
           </div>
