@@ -184,7 +184,7 @@ async def create_game(game: GameConfig):
 async def get_games():
     try:
         games = await db.games.find().to_list(100)
-        return games
+        return serialize_doc(games)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching games: {str(e)}")
 
