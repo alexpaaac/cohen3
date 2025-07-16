@@ -656,7 +656,10 @@ const RiskHuntBuilder = () => {
     riskZones.forEach(zone => {
       const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
       const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
-      const isFound = gameSession && gameSession.found_risks && gameSession.found_risks.includes(zone.id);
+      const isFound = gameSession && 
+        gameSession.found_risks && 
+        Array.isArray(gameSession.found_risks) && 
+        gameSession.found_risks.includes(zone.id);
       
       // Show risk zones in different scenarios:
       // 1. Builder mode - always show
