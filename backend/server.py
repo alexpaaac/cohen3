@@ -562,7 +562,11 @@ async def get_game_analytics(game_id: str):
 @api_router.get("/results/export/{game_id}")
 async def export_results(game_id: str, format: str = "csv"):
     try:
-        results = await db.results.find({"game_id": game_id}).to_list(100)
+        # Handle 'all' case for all games
+        if game_id == "all":
+            results = await db.results.find().to_list(1000)
+        else:
+            results = await db.results.find({"game_id": game_id}).to_list(100)
         
         if format == "csv":
             output = io.StringIO()
@@ -616,6 +620,57 @@ async def export_results(game_id: str, format: str = "csv"):
                 output,
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 headers={"Content-Disposition": f"attachment; filename=game_results_{game_id}.xlsx"}
+            )
+            
+        elif format == "pdf":
+            output = io.BytesIO()
+            doc = canvas.Canvas(output, pagesize=letter)
+            width, height = letter
+            
+            # Title
+            doc.setFont("Helvetica-Bold", 16)
+            doc.drawString(50, height - 50, f"Game Results Report - {game_id}")
+            
+            # Headers
+            doc.setFont("Helvetica-Bold", 10)
+            y_position = height - 100
+            headers = ["Player", "Team", "Score", "Risks", "Time", "Clicks", "Date"]
+            x_positions = [50, 130, 190, 240, 290, 340, 390]
+            
+            for i, header in enumerate(headers):
+                doc.drawString(x_positions[i], y_position, header)
+            
+            # Data
+            doc.setFont("Helvetica", 9)
+            y_position -= 20
+            
+            for result in results:
+                if y_position < 50:  # Start new page if needed
+                    doc.showPage()
+                    y_position = height - 50
+                
+                data = [
+                    result.get("player_name", "")[:15],  # Truncate long names
+                    result.get("team_name", "")[:10],
+                    str(result.get("total_score", 0)),
+                    str(result.get("total_risks_found", 0)),
+                    str(result.get("total_time_spent", 0)),
+                    str(result.get("total_clicks_used", 0)),
+                    str(result.get("created_at", ""))[:10]  # Date only
+                ]
+                
+                for i, value in enumerate(data):
+                    doc.drawString(x_positions[i], y_position, str(value))
+                
+                y_position -= 15
+            
+            doc.save()
+            output.seek(0)
+            
+            return StreamingResponse(
+                output,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename=game_results_{game_id}.pdf"}
             )
         
         else:
