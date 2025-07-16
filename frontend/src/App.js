@@ -721,7 +721,8 @@ const RiskHuntBuilder = () => {
     }
   };
 
-  const drawRiskZones = (showAll = false) => {
+  // Optimized drawing with requestAnimationFrame
+  const drawRiskZonesOptimized = (showAll = false) => {
     if (!canvasRef.current || !selectedImage) return;
 
     const canvas = canvasRef.current;
@@ -732,33 +733,44 @@ const RiskHuntBuilder = () => {
       console.warn('Canvas context not available');
       return;
     }
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw risk zones
-    riskZones.forEach(zone => {
-      // Safety check for zone validity
-      if (!zone || !zone.id || typeof zone.x !== 'number' || typeof zone.y !== 'number') {
-        console.warn('Invalid zone data detected:', zone);
-        return;
-      }
+
+    // Use requestAnimationFrame for smooth rendering
+    requestAnimationFrame(() => {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
-      const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
-      const isFound = gameSession && 
-        gameSession.found_risks && 
-        Array.isArray(gameSession.found_risks) && 
-        gameSession.found_risks.includes(zone.id);
+      // Batch rendering for better performance
+      const zonesToDraw = [];
       
-      // Show risk zones in different scenarios:
-      // 1. Builder mode - always show
-      // 2. Correction screen - show all
-      // 3. During gameplay - only show found ones
-      // 4. Hover/selected states
-      const shouldShow = activeTab === 'builder' || showAll || isHovered || isSelected || isFound;
-      
-      if (shouldShow) {
+      // Draw risk zones
+      riskZones.forEach(zone => {
+        // Safety check for zone validity
+        if (!zone || !zone.id || typeof zone.x !== 'number' || typeof zone.y !== 'number') {
+          console.warn('Invalid zone data detected:', zone);
+          return;
+        }
+        
+        const isHovered = hoveredRiskZone && hoveredRiskZone.id === zone.id;
+        const isSelected = selectedRiskZone && selectedRiskZone.id === zone.id;
+        const isFound = gameSession && 
+          gameSession.found_risks && 
+          Array.isArray(gameSession.found_risks) && 
+          gameSession.found_risks.includes(zone.id);
+        
+        // Show risk zones in different scenarios:
+        // 1. Builder mode - always show
+        // 2. Correction screen - show all
+        // 3. During gameplay - only show found ones
+        // 4. Hover/selected states
+        const shouldShow = activeTab === 'builder' || showAll || isHovered || isSelected || isFound;
+        
+        if (shouldShow) {
+          zonesToDraw.push({ zone, isFound, isSelected, isHovered });
+        }
+      });
+
+      // Batch draw all zones for better performance
+      zonesToDraw.forEach(({ zone, isFound, isSelected, isHovered }) => {
         // Different styling based on context
         if (isFound) {
           ctx.strokeStyle = '#10b981'; // Green for found risks
@@ -769,53 +781,44 @@ const RiskHuntBuilder = () => {
           ctx.lineWidth = 3;
           ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
         } else if (isHovered) {
-          ctx.strokeStyle = '#ffff00'; // Yellow for hovered
+          ctx.strokeStyle = '#ff0000'; // Red for hover
           ctx.lineWidth = 2;
-          ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+          ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
         } else {
-          ctx.strokeStyle = zone.color;
-          ctx.lineWidth = 1;
-          ctx.fillStyle = `${zone.color}33`;
+          ctx.strokeStyle = zone.color || '#3b82f6'; // Default blue
+          ctx.lineWidth = 2;
+          ctx.fillStyle = `${zone.color || '#3b82f6'}20`;
         }
+        
+        // Draw the zone shape
+        ctx.beginPath();
         
         if (zone.type === 'circle') {
-          const [x, y, radius] = zone.coordinates;
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, 2 * Math.PI);
-          ctx.stroke();
-          if (isHovered || isSelected || showAll || isFound) ctx.fill();
+          const [cx, cy, radius] = zone.coordinates;
+          ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
         } else if (zone.type === 'rectangle') {
           const [x, y, width, height] = zone.coordinates;
-          ctx.strokeRect(x, y, width, height);
-          if (isHovered || isSelected || showAll || isFound) ctx.fillRect(x, y, width, height);
+          ctx.rect(x, y, width, height);
         }
         
-        // Add zone labels in builder mode or correction screen
-        if ((activeTab === 'builder' || showAll) && zone.description) {
-          ctx.fillStyle = '#000';
+        ctx.fill();
+        ctx.stroke();
+        
+        // Add label for found risks or in builder mode
+        if (isFound || activeTab === 'builder') {
+          ctx.fillStyle = '#000000';
           ctx.font = '12px Arial';
           ctx.textAlign = 'center';
-          
-          let labelX, labelY;
-          if (zone.type === 'circle') {
-            [labelX, labelY] = zone.coordinates;
-          } else if (zone.type === 'rectangle') {
-            const [x, y, width, height] = zone.coordinates;
-            labelX = x + width / 2;
-            labelY = y + height / 2;
-          }
-          
-          // Add background to text for better readability
-          const textWidth = ctx.measureText(zone.description).width;
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          ctx.fillRect(labelX - textWidth/2 - 4, labelY - 8, textWidth + 8, 16);
-          
-          ctx.fillStyle = '#000';
-          ctx.fillText(zone.description, labelX, labelY + 4);
+          const textX = zone.type === 'circle' ? zone.coordinates[0] : zone.coordinates[0] + zone.coordinates[2] / 2;
+          const textY = zone.type === 'circle' ? zone.coordinates[1] : zone.coordinates[1] + zone.coordinates[3] / 2;
+          ctx.fillText(zone.description || 'Risk', textX, textY);
         }
-      }
+      });
     });
   };
+
+  // Backward compatibility alias
+  const drawRiskZones = drawRiskZonesOptimized;
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
