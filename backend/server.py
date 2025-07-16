@@ -719,13 +719,14 @@ async def create_sample_images():
 # Include the router in the main app
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Temporarily disabled CORS middleware for debugging
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_credentials=True,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Configure logging
 logging.basicConfig(
