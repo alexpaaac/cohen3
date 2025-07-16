@@ -2345,7 +2345,7 @@ const RiskHuntBuilder = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-sm">A</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800">Acapella Risk Hunt Builder</h1>
+              <h1 className="text-2xl font-bold text-gray-800">{t('title')}</h1>
             </div>
             <div className="flex space-x-4">
               <button
