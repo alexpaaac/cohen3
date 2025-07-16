@@ -604,7 +604,7 @@ const RiskHuntBuilder = () => {
     if (!gameSession) return;
     
     setGameEnded(true);
-    setGameSession(prev => ({ ...prev, status: 'completed' }));
+    setGameSession(prev => normalizeGameSession({ ...prev, status: 'completed' }));
     
     // Stop the timer
     setTimeRemaining(0);
