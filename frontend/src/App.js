@@ -1279,23 +1279,81 @@ const RiskHuntBuilder = () => {
     <div className="results-container">
       <h2 className="text-2xl font-bold mb-6">Results Dashboard</h2>
       
+      {/* Game Selection */}
+      <div className="game-selection mb-6">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="block text-sm font-medium mb-2">Select Game</label>
+            <select
+              value={selectedGame?.id || ''}
+              onChange={(e) => {
+                const gameId = e.target.value;
+                if (gameId) {
+                  const game = games.find(g => g.id === gameId);
+                  setSelectedGame(game);
+                  loadAnalytics(gameId);
+                } else {
+                  setSelectedGame(null);
+                  setAnalytics(null);
+                }
+              }}
+              className="p-2 border border-gray-300 rounded-lg min-w-[200px]"
+            >
+              <option value="">All Games</option>
+              {games.map(game => (
+                <option key={game.id} value={game.id}>
+                  {game.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Filter by Team</label>
+            <select
+              className="p-2 border border-gray-300 rounded-lg min-w-[150px]"
+              onChange={(e) => {
+                // Implement team filtering logic
+                console.log('Filter by team:', e.target.value);
+              }}
+            >
+              <option value="">All Teams</option>
+              {Array.from(new Set((analytics?.results || results).map(r => r.team_name).filter(Boolean)))
+                .map(team => (
+                  <option key={team} value={team}>{team}</option>
+                ))
+              }
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">View Mode</label>
+            <select className="p-2 border border-gray-300 rounded-lg">
+              <option value="all">All Players</option>
+              <option value="individual">Individual</option>
+              <option value="team">By Team</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
       {analytics && (
         <div className="analytics-section mb-6">
-          <h3 className="text-lg font-semibold mb-4">Game Analytics</h3>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="stat-card bg-blue-100 p-4 rounded">
+          <h3 className="text-lg font-semibold mb-4">Game Analytics - {selectedGame?.name}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="stat-card bg-blue-100 p-4 rounded-lg">
               <h4 className="font-semibold text-blue-800">Total Players</h4>
               <p className="text-2xl text-blue-600">{analytics.total_players}</p>
             </div>
-            <div className="stat-card bg-green-100 p-4 rounded">
+            <div className="stat-card bg-green-100 p-4 rounded-lg">
               <h4 className="font-semibold text-green-800">Average Score</h4>
               <p className="text-2xl text-green-600">{analytics.average_score}</p>
             </div>
-            <div className="stat-card bg-yellow-100 p-4 rounded">
+            <div className="stat-card bg-yellow-100 p-4 rounded-lg">
               <h4 className="font-semibold text-yellow-800">Average Time</h4>
               <p className="text-2xl text-yellow-600">{formatTime(analytics.average_time)}</p>
             </div>
-            <div className="stat-card bg-purple-100 p-4 rounded">
+            <div className="stat-card bg-purple-100 p-4 rounded-lg">
               <h4 className="font-semibold text-purple-800">Total Risks Found</h4>
               <p className="text-2xl text-purple-600">{analytics.total_risks_found}</p>
             </div>
@@ -1305,52 +1363,79 @@ const RiskHuntBuilder = () => {
 
       <div className="results-table-section">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Game Results</h3>
+          <h3 className="text-lg font-semibold">
+            Game Results 
+            {selectedGame && ` - ${selectedGame.name}`}
+            ({(analytics?.results || results).length} entries)
+          </h3>
           <div className="flex gap-2">
             <button
-              onClick={() => exportResults(analytics?.results?.[0]?.game_id || selectedGame?.id, 'csv')}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              onClick={() => exportResults(selectedGame?.id || 'all', 'csv')}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              Export CSV
+              📄 Export CSV
             </button>
             <button
-              onClick={() => exportResults(analytics?.results?.[0]?.game_id || selectedGame?.id, 'excel')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={() => exportResults(selectedGame?.id || 'all', 'excel')}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              Export Excel
+              📊 Export Excel
+            </button>
+            <button
+              onClick={() => exportResults(selectedGame?.id || 'all', 'pdf')}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              📋 Export PDF
             </button>
           </div>
         </div>
 
-        <div className="table-container">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2">Player Name</th>
-                <th className="border border-gray-300 p-2">Team</th>
-                <th className="border border-gray-300 p-2">Score</th>
-                <th className="border border-gray-300 p-2">Risks Found</th>
-                <th className="border border-gray-300 p-2">Time Spent</th>
-                <th className="border border-gray-300 p-2">Clicks Used</th>
-                <th className="border border-gray-300 p-2">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(analytics?.results || results).map(result => (
-                <tr key={result.id}>
-                  <td className="border border-gray-300 p-2">{result.player_name}</td>
-                  <td className="border border-gray-300 p-2">{result.team_name}</td>
-                  <td className="border border-gray-300 p-2">{result.total_score}</td>
-                  <td className="border border-gray-300 p-2">{result.total_risks_found}</td>
-                  <td className="border border-gray-300 p-2">{formatTime(result.total_time_spent)}</td>
-                  <td className="border border-gray-300 p-2">{result.total_clicks_used}</td>
-                  <td className="border border-gray-300 p-2">
-                    {new Date(result.created_at).toLocaleDateString()}
-                  </td>
+        <div className="table-container bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risks Found</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {(analytics?.results || results).map((result, index) => (
+                  <tr key={result.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-4 py-4 text-sm font-medium text-gray-900">{result.player_name}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{result.team_name || 'No Team'}</td>
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {result.total_score}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{result.total_risks_found}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{formatTime(result.total_time_spent)}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{result.total_clicks_used}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500">
+                      {new Date(result.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {(analytics?.results || results).length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No results found</p>
+              {selectedGame && (
+                <p className="text-sm text-gray-400 mt-2">
+                  No one has played "{selectedGame.name}" yet
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
