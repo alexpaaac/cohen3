@@ -194,7 +194,7 @@ async def get_game(game_id: str):
         game = await db.games.find_one({"id": game_id})
         if not game:
             raise HTTPException(status_code=404, detail="Game not found")
-        return game
+        return serialize_doc(game)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching game: {str(e)}")
 
