@@ -416,10 +416,35 @@ const RiskHuntBuilder = () => {
   };
 
   const duplicateGame = async (gameId) => {
+    showNotification('Duplicating game...', 'info');
+    
     try {
-      await axios.post(`${API}/games/${gameId}/duplicate`);
+      const response = await axios.post(`${API}/games/${gameId}/duplicate`);
+      
+      // Get the original game to copy its images
+      const originalGame = games.find(g => g.id === gameId);
+      if (originalGame && originalGame.images && originalGame.images.length > 0) {
+        // Duplicate all images associated with the game
+        const duplicatedImages = [];
+        for (const imageId of originalGame.images) {
+          try {
+            const imageResponse = await axios.post(`${API}/images/${imageId}/duplicate`);
+            duplicatedImages.push(imageResponse.data.id);
+          } catch (imageError) {
+            console.error('Error duplicating image:', imageError);
+          }
+        }
+        
+        // Update the duplicated game with the new image IDs
+        if (duplicatedImages.length > 0) {
+          await axios.put(`${API}/games/${response.data.id}`, {
+            images: duplicatedImages
+          });
+        }
+      }
+      
       loadGames();
-      showNotification('Game duplicated successfully', 'success');
+      showNotification('Game duplicated successfully with all images and risk zones', 'success');
     } catch (error) {
       console.error('Error duplicating game:', error);
       showNotification('Error duplicating game', 'error');
