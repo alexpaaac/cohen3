@@ -1658,13 +1658,13 @@ const RiskHuntBuilder = () => {
 
   const renderResults = () => (
     <div className="results-container">
-      <h2 className="text-2xl font-bold mb-6">Results Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('results')} Dashboard</h2>
       
       {/* Game Selection */}
       <div className="game-selection mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div>
-            <label className="block text-sm font-medium mb-2">Select Game</label>
+            <label className="block text-sm font-medium mb-2">{t('selectGame')}</label>
             <select
               value={selectedGame?.id || ''}
               onChange={(e) => {
@@ -1680,7 +1680,7 @@ const RiskHuntBuilder = () => {
               }}
               className="p-2 border border-gray-300 rounded-lg min-w-[200px]"
             >
-              <option value="">All Games</option>
+              <option value="">{t('allGames')}</option>
               {games.map(game => (
                 <option key={game.id} value={game.id}>
                   {game.name}
@@ -1690,7 +1690,7 @@ const RiskHuntBuilder = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2">Filter by Team</label>
+            <label className="block text-sm font-medium mb-2">{t('filterByTeam')}</label>
             <select
               className="p-2 border border-gray-300 rounded-lg min-w-[150px]"
               onChange={(e) => {
@@ -1698,7 +1698,7 @@ const RiskHuntBuilder = () => {
                 console.log('Filter by team:', e.target.value);
               }}
             >
-              <option value="">All Teams</option>
+              <option value="">{t('allTeams')}</option>
               {Array.from(new Set((analytics?.results || results).map(r => r.team_name).filter(Boolean)))
                 .map(team => (
                   <option key={team} value={team}>{team}</option>
@@ -1708,11 +1708,11 @@ const RiskHuntBuilder = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2">View Mode</label>
+            <label className="block text-sm font-medium mb-2">{t('viewMode')}</label>
             <select className="p-2 border border-gray-300 rounded-lg">
-              <option value="all">All Players</option>
-              <option value="individual">Individual</option>
-              <option value="team">By Team</option>
+              <option value="all">{t('allPlayers')}</option>
+              <option value="individual">{t('individual')}</option>
+              <option value="team">{t('byTeam')}</option>
             </select>
           </div>
         </div>
@@ -1754,19 +1754,19 @@ const RiskHuntBuilder = () => {
               onClick={() => exportResults(selectedGame?.id || 'all', 'csv')}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              📄 Export CSV
+              📄 {t('exportCsv')}
             </button>
             <button
               onClick={() => exportResults(selectedGame?.id || 'all', 'excel')}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              📊 Export Excel
+              📊 {t('exportExcel')}
             </button>
             <button
               onClick={() => exportResults(selectedGame?.id || 'all', 'pdf')}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              📋 Export PDF
+              📋 {t('exportPdf')}
             </button>
           </div>
         </div>
@@ -1776,13 +1776,13 @@ const RiskHuntBuilder = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risks Found</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('player')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('team')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('score')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('risksFound')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('time')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('clicks')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('date')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -1809,7 +1809,7 @@ const RiskHuntBuilder = () => {
           
           {(analytics?.results || results).length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500">No results found</p>
+              <p className="text-gray-500">{t('noResults')}</p>
               {selectedGame && (
                 <p className="text-sm text-gray-400 mt-2">
                   No one has played "{selectedGame.name}" yet
