@@ -546,21 +546,25 @@ const RiskHuntBuilder = () => {
         
         // Show the found risk zone temporarily
         const foundZone = response.data.risk_zone;
-        if (foundZone) {
+        if (foundZone && foundZone.coordinates && Array.isArray(foundZone.coordinates)) {
           ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
           ctx.strokeStyle = '#10b981';
           ctx.lineWidth = 2;
           
-          if (foundZone.type === 'circle') {
+          if (foundZone.type === 'circle' && foundZone.coordinates.length >= 3) {
             const [cx, cy, radius] = foundZone.coordinates;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.stroke();
-          } else if (foundZone.type === 'rectangle') {
+            if (typeof cx === 'number' && typeof cy === 'number' && typeof radius === 'number') {
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.stroke();
+            }
+          } else if (foundZone.type === 'rectangle' && foundZone.coordinates.length >= 4) {
             const [rx, ry, width, height] = foundZone.coordinates;
-            ctx.fillRect(rx, ry, width, height);
-            ctx.strokeRect(rx, ry, width, height);
+            if (typeof rx === 'number' && typeof ry === 'number' && typeof width === 'number' && typeof height === 'number') {
+              ctx.fillRect(rx, ry, width, height);
+              ctx.strokeRect(rx, ry, width, height);
+            }
           }
         }
         
