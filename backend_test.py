@@ -31,10 +31,14 @@ print(f"Testing backend at: {API_URL}")
 # Test results storage
 test_results = {
     "image_management": {"passed": 0, "failed": 0, "errors": []},
+    "enhanced_image_management": {"passed": 0, "failed": 0, "errors": []},
     "risk_zone_annotation": {"passed": 0, "failed": 0, "errors": []},
     "game_configuration": {"passed": 0, "failed": 0, "errors": []},
+    "enhanced_game_management": {"passed": 0, "failed": 0, "errors": []},
     "game_session_management": {"passed": 0, "failed": 0, "errors": []},
+    "enhanced_session_management": {"passed": 0, "failed": 0, "errors": []},
     "results_tracking": {"passed": 0, "failed": 0, "errors": []},
+    "results_analytics": {"passed": 0, "failed": 0, "errors": []},
     "sample_data_setup": {"passed": 0, "failed": 0, "errors": []}
 }
 
