@@ -264,6 +264,8 @@ async def get_game(game_id: str):
         if not game:
             raise HTTPException(status_code=404, detail="Game not found")
         return serialize_doc(game)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching game: {str(e)}")
 
